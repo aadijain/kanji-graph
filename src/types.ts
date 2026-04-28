@@ -1,4 +1,4 @@
-export type EdgeType = "shared-kanji";
+export type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji";
 
 export interface WordNode {
   id: string;

@@ -30,20 +30,26 @@ export default function DetailsPanel() {
 
   const subject = hovered ?? focused;
 
-  const byKanji = useMemo(() => {
+  const connections = useMemo(() => {
     if (!subject || !graph) return null;
-    const map = new Map<string, string[]>();
-    for (const k of subject.kanji) map.set(k, []);
+    const byKanji = new Map<string, string[]>();
+    for (const k of subject.kanji) byKanji.set(k, []);
+    const sameReading: string[] = [];
+    const similarKanji: { other: string; via: string[] }[] = [];
     for (const e of graph.edges as Edge[]) {
       const s = endpointId(e.source);
       const t = endpointId(e.target);
       if (s !== subject.id && t !== subject.id) continue;
       const other = s === subject.id ? t : s;
-      for (const k of e.via) {
-        if (map.has(k)) map.get(k)!.push(other);
+      if (e.type === "shared-kanji") {
+        for (const k of e.via) if (byKanji.has(k)) byKanji.get(k)!.push(other);
+      } else if (e.type === "same-reading") {
+        sameReading.push(other);
+      } else if (e.type === "similar-kanji") {
+        similarKanji.push({ other, via: e.via });
       }
     }
-    return map;
+    return { byKanji, sameReading, similarKanji };
   }, [subject, graph]);
 
   if (!subject) {
@@ -85,13 +91,13 @@ export default function DetailsPanel() {
         {subject.frequency != null && <span>freq {subject.frequency}</span>}
       </div>
 
-      {byKanji && byKanji.size > 0 && (
+      {connections && connections.byKanji.size > 0 && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">
-            connections
+            shared kanji
           </div>
           <div className="mt-2 space-y-2">
-            {[...byKanji.entries()].map(([k, others]) => {
+            {[...connections.byKanji.entries()].map(([k, others]) => {
               const dim = !!hoveredKanji && hoveredKanji !== k;
               return (
                 <div
@@ -111,6 +117,34 @@ export default function DetailsPanel() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {connections && connections.sameReading.length > 0 && (
+        <div className="mt-4 border-t border-ink-700 pt-3">
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+            same reading
+          </div>
+          <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
+               style={{ color: "#7aa8d9" }}>
+            {connections.sameReading.map((o) => <span key={o}>{o}</span>)}
+          </div>
+        </div>
+      )}
+
+      {connections && connections.similarKanji.length > 0 && (
+        <div className="mt-4 border-t border-ink-700 pt-3">
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+            similar kanji
+          </div>
+          <div className="mt-2 space-y-1">
+            {connections.similarKanji.map(({ other, via }) => (
+              <div key={other} className="jp flex items-baseline gap-2 text-sm">
+                <span style={{ color: "#a880d4" }}>{other}</span>
+                <span className="text-[11px] text-ink-500">via {via.join(" / ")}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

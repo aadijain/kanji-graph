@@ -35,12 +35,31 @@ const COLORS = {
   nodeNeighbor: "#f3e7d3",
   nodeFocus: "#ffffff",
   nodeMuted: "#5a6078",
-  edgeActive: "rgba(212, 168, 87, 0.85)",
-  edgeMuted: "rgba(212, 168, 87, 0.18)",
-  edgeAmbient: "rgba(212, 168, 87, 0.05)",
   edgeHidden: "rgba(0, 0, 0, 0)",
   bridgeKanji: "#d4a857",
   bridgeKanjiHi: "#ffd47a",
+};
+
+// Per edge-type colors. Active = on hover/focus; Ambient = global resting state.
+const EDGE_COLORS: Record<
+  "shared-kanji" | "same-reading" | "similar-kanji",
+  { active: string; muted: string; ambient: string }
+> = {
+  "shared-kanji": {
+    active: "rgba(212, 168, 87, 0.85)",
+    muted: "rgba(212, 168, 87, 0.18)",
+    ambient: "rgba(212, 168, 87, 0.05)",
+  },
+  "same-reading": {
+    active: "rgba(122, 168, 217, 0.85)",
+    muted: "rgba(122, 168, 217, 0.18)",
+    ambient: "rgba(122, 168, 217, 0.05)",
+  },
+  "similar-kanji": {
+    active: "rgba(168, 128, 212, 0.85)",
+    muted: "rgba(168, 128, 212, 0.18)",
+    ambient: "rgba(168, 128, 212, 0.05)",
+  },
 };
 
 function drawLabel(
@@ -105,18 +124,21 @@ export default function Graph() {
     return out;
   }, [focal, graph.edges]);
 
-  // For each neighbor of focused: which kanji bridge them.
+  // For each neighbor of focused: which kanji bridge them (across all edge types).
+  // same-reading edges contribute no kanji; similar-kanji edges contribute the similar pair.
   const viaByNeighbor = useMemo(() => {
-    const map = new Map<string, string[]>();
-    if (!focused) return map;
+    const map = new Map<string, Set<string>>();
+    if (!focused) return new Map<string, string[]>();
     for (const e of graph.edges) {
       const s = endpointId(e.source);
       const t = endpointId(e.target);
       if (s !== focused.id && t !== focused.id) continue;
       const other = s === focused.id ? t : s;
-      map.set(other, e.via);
+      const set = map.get(other) ?? new Set<string>();
+      if (e.type !== "same-reading") for (const k of e.via) set.add(k);
+      map.set(other, set);
     }
-    return map;
+    return new Map([...map.entries()].map(([k, v]) => [k, [...v]]));
   }, [focused, graph.edges]);
 
   // Smooth transition on focus enter / change / exit.
@@ -371,13 +393,18 @@ export default function Graph() {
         const l = link as Edge;
         const s = endpointId(l.source);
         const t = endpointId(l.target);
+        const palette = EDGE_COLORS[l.type];
         if (focused) {
           if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
-          if (hoveredKanji && !l.via.includes(hoveredKanji)) return COLORS.edgeMuted;
-          return COLORS.edgeActive;
+          // Kanji-hover filter only meaningful for kanji-bearing edge types.
+          if (hoveredKanji && l.type !== "same-reading" && !l.via.includes(hoveredKanji)) {
+            return palette.muted;
+          }
+          if (hoveredKanji && l.type === "same-reading") return palette.muted;
+          return palette.active;
         }
-        if (!hovered) return COLORS.edgeAmbient;
-        return s === hovered.id || t === hovered.id ? COLORS.edgeActive : COLORS.edgeHidden;
+        if (!hovered) return palette.ambient;
+        return s === hovered.id || t === hovered.id ? palette.active : COLORS.edgeHidden;
       }}
       linkWidth={(link) => {
         const l = link as Edge;
