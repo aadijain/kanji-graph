@@ -3,5 +3,15 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173, host: true },
+  server: {
+    port: 5173,
+    host: true,
+    proxy: {
+      "/audio": {
+        target: "http://localhost:5050",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/audio/, ""),
+      },
+    },
+  },
 });

@@ -1,12 +1,32 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useStore } from "../store";
 import { endpointId, type Edge } from "../types";
+import { playPronunciation } from "../lib/audio";
+
+function SpeakerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+    </svg>
+  );
+}
 
 export default function DetailsPanel() {
   const hovered = useStore((s) => s.hovered);
   const focused = useStore((s) => s.focused);
   const graph = useStore((s) => s.graph);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
+  const [playing, setPlaying] = useState(false);
 
   const subject = hovered ?? focused;
 
@@ -36,7 +56,26 @@ export default function DetailsPanel() {
 
   return (
     <div className="absolute right-6 top-6 w-80 rounded-lg border border-ink-700 bg-ink-900/90 p-4 shadow-xl backdrop-blur">
-      <div className="jp text-2xl font-semibold text-accent-paper">{subject.word}</div>
+      <div className="flex items-center gap-2">
+        <div className="jp text-2xl font-semibold text-accent-paper">{subject.word}</div>
+        <button
+          type="button"
+          aria-label="Play pronunciation"
+          onClick={async () => {
+            if (playing) return;
+            setPlaying(true);
+            await playPronunciation(subject.word, subject.reading);
+            setPlaying(false);
+          }}
+          className={`rounded p-1 transition-colors ${
+            playing
+              ? "text-accent-gold"
+              : "text-ink-500 hover:bg-ink-800 hover:text-accent-paper"
+          }`}
+        >
+          <SpeakerIcon className={`h-4 w-4 ${playing ? "animate-pulse" : ""}`} />
+        </button>
+      </div>
       <div className="jp mt-1 text-sm text-ink-300">{subject.reading}</div>
       <div className="mt-3 text-sm leading-snug text-ink-100">
         {subject.glosses.join("; ")}

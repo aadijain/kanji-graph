@@ -5,6 +5,7 @@ import DetailsPanel from "./components/DetailsPanel";
 import StatsBar from "./components/StatsBar";
 import Legend from "./components/Legend";
 import FocusOverlay from "./components/FocusOverlay";
+import { playPronunciation } from "./lib/audio";
 import type { GraphData } from "./types";
 
 export default function App() {
@@ -30,6 +31,11 @@ export default function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [focused, setFocused]);
+
+  // Auto-play pronunciation when entering focus on a new word.
+  useEffect(() => {
+    if (focused) void playPronunciation(focused.word, focused.reading);
+  }, [focused?.id, focused?.word, focused?.reading]);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink-950">
