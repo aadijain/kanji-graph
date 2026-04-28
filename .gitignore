@@ -5,3 +5,4 @@ dist
 .vite
 public/graph.json
 tsconfig.tsbuildinfo
+data/dict/
