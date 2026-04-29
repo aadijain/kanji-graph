@@ -1,18 +1,43 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "./store";
 import Graph from "./components/Graph";
 import DetailsPanel from "./components/DetailsPanel";
 import StatsBar from "./components/StatsBar";
 import Legend from "./components/Legend";
 import FocusOverlay from "./components/FocusOverlay";
+import InfoModal from "./components/InfoModal";
+import SettingsPanel from "./components/SettingsPanel";
 import { playPronunciation } from "./lib/audio";
 import type { GraphData } from "./types";
+
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
 
 export default function App() {
   const setGraph = useStore((s) => s.setGraph);
   const graph = useStore((s) => s.graph);
   const focused = useStore((s) => s.focused);
   const setFocused = useStore((s) => s.setFocused);
+  const settings = useStore((s) => s.settings);
+
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     fetch("/graph.json")
@@ -26,16 +51,21 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && focused) setFocused(null);
+      if (e.key === "Escape") {
+        if (infoOpen) { setInfoOpen(false); return; }
+        if (settingsOpen) { setSettingsOpen(false); return; }
+        if (focused) setFocused(null);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [focused, setFocused]);
+  }, [focused, setFocused, infoOpen, settingsOpen]);
 
-  // Auto-play pronunciation when entering focus on a new word.
   useEffect(() => {
-    if (focused) void playPronunciation(focused.word, focused.reading);
-  }, [focused?.id, focused?.word, focused?.reading]);
+    if (focused && settings.audioAutoPlay) {
+      void playPronunciation(focused.word, focused.reading);
+    }
+  }, [focused?.id, focused?.word, focused?.reading, settings.audioAutoPlay]);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink-950">
@@ -50,6 +80,29 @@ export default function App() {
       <Legend />
       <FocusOverlay />
       <DetailsPanel />
+
+      {/* Info / Settings buttons — bottom-right */}
+      <div className="absolute bottom-6 right-6 flex gap-2">
+        <button
+          type="button"
+          aria-label="Settings"
+          onClick={() => { setSettingsOpen(true); setInfoOpen(false); }}
+          className="rounded-md border border-ink-700 bg-ink-900/80 p-2 text-ink-400 backdrop-blur transition-colors hover:border-ink-500 hover:text-ink-100"
+        >
+          <GearIcon />
+        </button>
+        <button
+          type="button"
+          aria-label="About"
+          onClick={() => { setInfoOpen(true); setSettingsOpen(false); }}
+          className="rounded-md border border-ink-700 bg-ink-900/80 p-2 text-ink-400 backdrop-blur transition-colors hover:border-ink-500 hover:text-ink-100"
+        >
+          <InfoIcon />
+        </button>
+      </div>
+
+      {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

@@ -96,6 +96,7 @@ export default function Graph() {
   const setFocused = useStore((s) => s.setFocused);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const setTransitioning = useStore((s) => s.setTransitioning);
+  const edgeVisibility = useStore((s) => s.settings.edgeVisibility);
 
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const cancelTweenRef = useRef<(() => void) | null>(null);
@@ -116,13 +117,14 @@ export default function Graph() {
     if (!focal) return new Set<string>();
     const out = new Set<string>();
     for (const e of graph.edges) {
+      if (!edgeVisibility[e.type]) continue;
       const s = endpointId(e.source);
       const t = endpointId(e.target);
       if (s === focal.id) out.add(t);
       else if (t === focal.id) out.add(s);
     }
     return out;
-  }, [focal, graph.edges]);
+  }, [focal, graph.edges, edgeVisibility]);
 
   // For each neighbor of focused: which kanji bridge them (across all edge types).
   // same-reading edges contribute no kanji; similar-kanji edges contribute the similar pair.
@@ -130,6 +132,7 @@ export default function Graph() {
     const map = new Map<string, Set<string>>();
     if (!focused) return new Map<string, string[]>();
     for (const e of graph.edges) {
+      if (!edgeVisibility[e.type]) continue;
       const s = endpointId(e.source);
       const t = endpointId(e.target);
       if (s !== focused.id && t !== focused.id) continue;
@@ -139,7 +142,7 @@ export default function Graph() {
       map.set(other, set);
     }
     return new Map([...map.entries()].map(([k, v]) => [k, [...v]]));
-  }, [focused, graph.edges]);
+  }, [focused, graph.edges, edgeVisibility]);
 
   // Smooth transition on focus enter / change / exit.
   useEffect(() => {
@@ -391,6 +394,7 @@ export default function Graph() {
       // ----- edges -----
       linkColor={(link) => {
         const l = link as Edge;
+        if (!edgeVisibility[l.type]) return COLORS.edgeHidden;
         const s = endpointId(l.source);
         const t = endpointId(l.target);
         const palette = EDGE_COLORS[l.type];
@@ -408,6 +412,7 @@ export default function Graph() {
       }}
       linkWidth={(link) => {
         const l = link as Edge;
+        if (!edgeVisibility[l.type]) return 0;
         const s = endpointId(l.source);
         const t = endpointId(l.target);
         if (focused) {
