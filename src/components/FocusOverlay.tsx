@@ -5,6 +5,8 @@ export default function FocusOverlay() {
   const focused = useStore((s) => s.focused);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const setHoveredKanji = useStore((s) => s.setHoveredKanji);
+  const hoveredReading = useStore((s) => s.hoveredReading);
+  const setHoveredReading = useStore((s) => s.setHoveredReading);
   const transitioning = useStore((s) => s.transitioning);
 
   if (!focused) return null;
@@ -33,7 +35,7 @@ export default function FocusOverlay() {
                   isKanji ? "cursor-pointer" : "",
                   isActive
                     ? "scale-110 text-accent-gold"
-                    : dim
+                    : (dim || hoveredReading)
                       ? "text-ink-500"
                       : isKanji
                         ? "text-white hover:text-accent-gold"
@@ -45,7 +47,13 @@ export default function FocusOverlay() {
             );
           })}
         </div>
-        <div className="jp mt-3 text-sm text-ink-300">{focused.reading}</div>
+        <div
+          className={`jp mt-3 cursor-pointer text-sm transition duration-150 ${hoveredReading ? "text-accent-sky" : "text-ink-300 hover:text-accent-sky"}`}
+          onMouseEnter={() => setHoveredReading(true)}
+          onMouseLeave={() => setHoveredReading(false)}
+        >
+          {focused.reading}
+        </div>
       </div>
     </div>
   );

@@ -81,6 +81,7 @@ export default function Graph() {
   const focused = useStore((s) => s.focused);
   const setFocused = useStore((s) => s.setFocused);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
+  const hoveredReading = useStore((s) => s.hoveredReading);
   const setTransitioning = useStore((s) => s.setTransitioning);
   const edgeVisibility = useStore((s) => s.settings.edgeVisibility);
   const settings = useStore((s) => s.settings);
@@ -127,7 +128,7 @@ export default function Graph() {
 
   // For each neighbor of focused: bridging kanji + which edge type contributed each.
   const neighborData = useMemo(() => {
-    type NData = { via: string[]; kanjiType: Map<string, Edge["type"]>; primaryType: Edge["type"] };
+    type NData = { via: string[]; kanjiType: Map<string, Edge["type"]>; primaryType: Edge["type"]; types: Edge["type"][] };
     const map = new Map<string, { viaSet: Set<string>; kanjiType: Map<string, Edge["type"]>; types: Edge["type"][] }>();
     if (!focused) return new Map<string, NData>();
     for (const e of graph.edges as Edge[]) {
@@ -150,7 +151,7 @@ export default function Graph() {
     const typePriority: Edge["type"][] = ["shared-kanji", "same-reading", "similar-kanji"];
     for (const [id, d] of map) {
       const primaryType = typePriority.find((t) => d.types.includes(t)) ?? d.types[0];
-      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType });
+      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types });
     }
     return result;
   }, [focused, graph.edges, edgeVisibility]);
@@ -334,11 +335,15 @@ export default function Graph() {
         } else if (focused && isNeighbor) {
           const nd = neighborData.get(n.id);
           const via = nd?.via ?? [];
+          const isSameReading = nd?.types.includes("same-reading") ?? false;
           const dimByKanji = !!hoveredKanji && !via.includes(hoveredKanji);
+          const dimByReading = hoveredReading && !isSameReading;
           const dotColor = hoveredKanji
             ? EDGE_TYPE_META[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"].hex
-            : EDGE_TYPE_META[nd?.primaryType ?? "shared-kanji"].hex;
-          ctx.fillStyle = dimByKanji ? COLORS.muted : dotColor;
+            : hoveredReading
+              ? EDGE_TYPE_META["same-reading"].hex
+              : EDGE_TYPE_META[nd?.primaryType ?? "shared-kanji"].hex;
+          ctx.fillStyle = (dimByKanji || dimByReading) ? COLORS.muted : dotColor;
         } else if (isHovered) {
           ctx.fillStyle = COLORS.bridgeKanjiHi;
         } else if (isHoverNeighbor) {
@@ -371,6 +376,7 @@ export default function Graph() {
         if (focused && isNeighbor) {
           const nd = neighborData.get(n.id);
           const via = nd?.via ?? [];
+          const isSameReading = nd?.types.includes("same-reading") ?? false;
           if (hoveredKanji) {
             if (via.includes(hoveredKanji)) {
               baseColor = "#ffffff";
@@ -380,6 +386,9 @@ export default function Graph() {
             } else {
               baseColor = COLORS.muted;
             }
+          } else if (hoveredReading) {
+            baseColor = isSameReading ? "#ffffff" : COLORS.muted;
+            if (isSameReading) weight = 600;
           } else {
             baseColor = COLORS.neighbor;
             highlightSet = new Set(via);
@@ -422,11 +431,12 @@ export default function Graph() {
         const palette = EDGE_TYPE_META[l.type];
         if (focused) {
           if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
-          // Kanji-hover filter only meaningful for kanji-bearing edge types.
-          if (hoveredKanji && l.type !== "same-reading" && !l.via.includes(hoveredKanji)) {
-            return palette.muted;
+          if (hoveredKanji) {
+            if (l.type === "same-reading" || !l.via.includes(hoveredKanji)) return palette.muted;
           }
-          if (hoveredKanji && l.type === "same-reading") return palette.muted;
+          if (hoveredReading) {
+            if (l.type !== "same-reading") return palette.muted;
+          }
           return palette.active;
         }
         if (!hovered) return palette.ambient;
@@ -439,7 +449,8 @@ export default function Graph() {
         const t = endpointId(l.target);
         if (focused) {
           if (s !== focused.id && t !== focused.id) return 0;
-          if (hoveredKanji && !l.via.includes(hoveredKanji)) return 0.5;
+          if (hoveredKanji && (l.type === "same-reading" || !l.via.includes(hoveredKanji))) return 0.5;
+          if (hoveredReading && l.type !== "same-reading") return 0.5;
           return 1.6;
         }
         if (!hovered) return 0.4;
