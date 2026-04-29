@@ -35,7 +35,7 @@ export default function DetailsPanel() {
     const byKanji = new Map<string, string[]>();
     for (const k of subject.kanji) byKanji.set(k, []);
     const sameReading: string[] = [];
-    const similarKanji: { other: string; via: string[] }[] = [];
+    const similarByKanji = new Map<string, string[]>();
     for (const e of graph.edges as Edge[]) {
       const s = endpointId(e.source);
       const t = endpointId(e.target);
@@ -46,10 +46,16 @@ export default function DetailsPanel() {
       } else if (e.type === "same-reading") {
         sameReading.push(other);
       } else if (e.type === "similar-kanji") {
-        similarKanji.push({ other, via: e.via });
+        for (const k of e.via) {
+          if (subject.kanji.includes(k)) {
+            const arr = similarByKanji.get(k) ?? [];
+            arr.push(other);
+            similarByKanji.set(k, arr);
+          }
+        }
       }
     }
-    return { byKanji, sameReading, similarKanji };
+    return { byKanji, sameReading, similarByKanji };
   }, [subject, graph]);
 
   if (!subject) {
@@ -133,18 +139,28 @@ export default function DetailsPanel() {
         </div>
       )}
 
-      {connections && connections.similarKanji.length > 0 && (
+      {connections && connections.similarByKanji.size > 0 && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">
             similar kanji
           </div>
-          <div className="mt-2 space-y-1">
-            {connections.similarKanji.map(({ other, via }) => (
-              <div key={other} className="jp flex items-baseline gap-2 text-sm">
-                <span style={{ color: "#a880d4" }}>{other}</span>
-                <span className="text-[11px] text-ink-500">via {via.join(" / ")}</span>
-              </div>
-            ))}
+          <div className="mt-2 space-y-2">
+            {[...connections.similarByKanji.entries()].map(([k, others]) => {
+              const dim = !!hoveredKanji && hoveredKanji !== k;
+              return (
+                <div
+                  key={k}
+                  className={`flex items-start gap-3 transition-opacity ${
+                    dim ? "opacity-30" : "opacity-100"
+                  }`}
+                >
+                  <div className="jp w-6 shrink-0 text-lg" style={{ color: "#a880d4" }}>{k}</div>
+                  <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-ink-100">
+                    {others.map((o) => <span key={o}>{o}</span>)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
