@@ -30,10 +30,10 @@ export default function FocusOverlay() {
                 onMouseEnter={() => isKanji && setHoveredKanji(ch)}
                 onMouseLeave={() => isKanji && setHoveredKanji(null)}
                 className={[
-                  "px-1 transition-colors duration-150",
+                  "inline-block px-1 transition duration-150",
                   isKanji ? "cursor-pointer" : "",
                   isActive
-                    ? "text-accent-gold"
+                    ? "scale-110 text-accent-gold"
                     : dim
                       ? "text-ink-500"
                       : isKanji

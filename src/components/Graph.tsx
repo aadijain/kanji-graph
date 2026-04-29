@@ -4,11 +4,15 @@ import { useStore } from "../store";
 import { endpointId, type Edge, type WordNode } from "../types";
 import { tween } from "../lib/animation";
 import { radialAround, type XY } from "../lib/layout";
+import {
+  ANIMATION_MS,
+  FOCUS_ZOOM_VALUES,
+  NEIGHBOR_RADIUS_VALUES,
+  LAYOUT_DENSITY_VALUES,
+  NODE_SIZE_VALUES,
+} from "../lib/settings";
 
 const LAYOUT_KEY = "kanji-graph:layout:v1";
-const RADIUS_NEIGHBOR = 90;
-const TRANSITION_MS = 700;
-const FOCUS_ZOOM = 3.5;
 
 type Pos = { id: string; x: number; y: number };
 
@@ -97,10 +101,23 @@ export default function Graph() {
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const setTransitioning = useStore((s) => s.setTransitioning);
   const edgeVisibility = useStore((s) => s.settings.edgeVisibility);
+  const settings = useStore((s) => s.settings);
 
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const cancelTweenRef = useRef<(() => void) | null>(null);
   const cachedPositionsRef = useRef<Map<string, XY>>(new Map());
+
+  // Apply force-layout params whenever density setting changes.
+  useEffect(() => {
+    const fg = fgRef.current;
+    if (!fg) return;
+    const { linkDistance, chargeStrength } = LAYOUT_DENSITY_VALUES[settings.layoutDensity];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fg.d3Force("link") as any)?.distance?.(linkDistance);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fg.d3Force("charge") as any)?.strength?.(chargeStrength);
+    if (!focused) fg.d3ReheatSimulation();
+  }, [settings.layoutDensity]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const data = useMemo(() => {
     const cached = loadLayout();
@@ -152,6 +169,12 @@ export default function Graph() {
     const fg = fgRef.current;
     if (!fg) return;
     const nodes = data.nodes as WordNode[];
+    // Read current settings at transition time (not as deps — we don't want to
+    // re-tween when a setting changes while already in focus).
+    const s = useStore.getState().settings;
+    const transitionMs = ANIMATION_MS[s.animationSpeed];
+    const focusZoom = FOCUS_ZOOM_VALUES[s.focusZoom];
+    const neighborRadius = NEIGHBOR_RADIUS_VALUES[s.neighborSpread];
 
     if (focused) {
       if (cachedPositionsRef.current.size === 0) {
@@ -173,7 +196,7 @@ export default function Graph() {
         else if (t === focused.id) focusNeighbors.add(s);
       }
       const neighborNodes = nodes.filter((n) => focusNeighbors.has(n.id));
-      const radial = radialAround(focusNode, neighborNodes, RADIUS_NEIGHBOR);
+      const radial = radialAround(focusNode, neighborNodes, neighborRadius);
 
       const targets = new Map<string, XY>();
       targets.set(focused.id, { x: focusNode.x ?? 0, y: focusNode.y ?? 0 });
@@ -187,12 +210,12 @@ export default function Graph() {
         n.fy = undefined;
       }
 
-      fg.centerAt(focusNode.x ?? 0, focusNode.y ?? 0, TRANSITION_MS);
-      fg.zoom(FOCUS_ZOOM, TRANSITION_MS);
+      fg.centerAt(focusNode.x ?? 0, focusNode.y ?? 0, transitionMs);
+      fg.zoom(focusZoom, transitionMs);
       setTransitioning(true);
 
       cancelTweenRef.current = tween({
-        duration: TRANSITION_MS,
+        duration: transitionMs,
         onUpdate: (t) => {
           for (const n of nodes) {
             const start = starts.get(n.id);
@@ -229,10 +252,10 @@ export default function Graph() {
       }
 
       setTransitioning(true);
-      fg.zoomToFit(TRANSITION_MS, 80);
+      fg.zoomToFit(transitionMs, 80);
 
       cancelTweenRef.current = tween({
-        duration: TRANSITION_MS,
+        duration: transitionMs,
         onUpdate: (t) => {
           for (const n of nodes) {
             const start = starts.get(n.id);
@@ -304,7 +327,7 @@ export default function Graph() {
         const dimmedByHover =
           !focused && !!hovered && !isHovered && !isHoverNeighbor;
 
-        const fontSize = 14 / globalScale;
+        const fontSize = NODE_SIZE_VALUES[settings.nodeSize] / globalScale;
         const dotR = (isFocus ? 5 : isHovered ? 5 : 3.5) / globalScale;
 
         // dot

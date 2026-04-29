@@ -1,15 +1,19 @@
-// Default routes through the Vite dev-server proxy (`/audio` → audio server on
-// the same host). Override with VITE_AUDIO_BASE for prod or other setups.
-const YOMITAN_BASE =
-  (import.meta.env.VITE_AUDIO_BASE as string | undefined)?.replace(/\/+$/, "") ??
-  "/audio";
+import { useStore } from "../store";
+
+// Read the effective audio server base at call time so runtime settings override
+// the build-time VITE_AUDIO_BASE without a page reload.
+function getBase(): string {
+  const override = useStore.getState().settings.audioServerUrl.trim();
+  if (override) return override.replace(/\/+$/, "");
+  return (import.meta.env.VITE_AUDIO_BASE as string | undefined)?.replace(/\/+$/, "") ?? "/audio";
+}
 
 let currentAudio: HTMLAudioElement | null = null;
 
-function yomitanUrl(word: string, reading: string): string {
+function yomitanUrl(word: string, reading: string, base: string): string {
   const t = encodeURIComponent(word);
   const r = encodeURIComponent(reading);
-  return `${YOMITAN_BASE}/?term=${t}&reading=${r}`;
+  return `${base}/?term=${t}&reading=${r}`;
 }
 
 interface AudioManifest {
@@ -19,7 +23,7 @@ interface AudioManifest {
 
 // Yomitan-style audio servers return either direct audio bytes or a JSON
 // manifest listing source URLs. Resolve to a direct, browser-reachable URL.
-async function resolveAudioUrl(url: string): Promise<string> {
+async function resolveAudioUrl(url: string, base: string): Promise<string> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const ct = res.headers.get("content-type") ?? "";
@@ -28,9 +32,9 @@ async function resolveAudioUrl(url: string): Promise<string> {
   const first = manifest.audioSources?.[0]?.url;
   if (!first) throw new Error("no audio sources in manifest");
   // Sources point at the audio server's own origin (e.g. localhost:5050).
-  // Rewrite to YOMITAN_BASE so the browser reaches them via the same path
+  // Rewrite to base so the browser reaches them via the same path
   // (Vite proxy in dev, configured base in prod).
-  return first.replace(/^https?:\/\/[^/]+/, YOMITAN_BASE);
+  return first.replace(/^https?:\/\/[^/]+/, base);
 }
 
 function stopAll() {
@@ -101,9 +105,10 @@ function speakTTS(text: string): Promise<void> {
  */
 export async function playPronunciation(word: string, reading: string): Promise<void> {
   stopAll();
-  const lookupUrl = yomitanUrl(word, reading);
+  const base = getBase();
+  const lookupUrl = yomitanUrl(word, reading, base);
   try {
-    const audioUrl = await resolveAudioUrl(lookupUrl);
+    const audioUrl = await resolveAudioUrl(lookupUrl, base);
     await playUrl(audioUrl);
     return;
   } catch (err) {

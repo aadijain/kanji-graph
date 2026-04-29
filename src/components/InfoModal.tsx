@@ -2,19 +2,38 @@ interface Props {
   onClose: () => void;
 }
 
-const INTERACTIONS = [
+// Global view: default browsing mode, hover-driven.
+const GLOBAL_VIEW = [
   ["Hover a word", "Show its connections"],
-  ["Click a word", "Enter focus mode — zoom in, radial layout"],
-  ["Click a neighbor or edge", "Navigate to that word's focus"],
-  ["Hover a kanji (in focus)", "Filter edges to that kanji only"],
-  ["Esc / click background", "Exit focus mode"],
-];
+  ["Scroll", "Zoom in / out"],
+  ["Click a word", "Enter focus mode"],
+] as const;
+
+// Focus mode: click-driven, one word at a time.
+const FOCUS_MODE = [
+  ["Click a neighbor or edge", "Navigate to that word"],
+  ["Hover a kanji", "Filter connections to that kanji"],
+  ["Esc / click background", "Return to global view"],
+] as const;
 
 const EDGE_TYPES = [
   { color: "rgba(212, 168, 87, 0.9)", label: "shared kanji", desc: "both words contain the same kanji character" },
   { color: "rgba(122, 168, 217, 0.9)", label: "same reading", desc: "homophones — identical hiragana reading" },
   { color: "rgba(168, 128, 212, 0.9)", label: "similar kanji", desc: "words contain visually confusable kanji pairs" },
 ];
+
+function InteractionTable({ rows }: { rows: readonly (readonly [string, string])[] }) {
+  return (
+    <div className="mt-1.5 space-y-1.5">
+      {rows.map(([action, result]) => (
+        <div key={action} className="flex gap-4 text-sm">
+          <span className="w-36 shrink-0 text-ink-100">{action}</span>
+          <span className="text-ink-500">{result}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function InfoModal({ onClose }: Props) {
   return (
@@ -39,33 +58,36 @@ export default function InfoModal({ onClose }: Props) {
 
         <h2 className="text-base font-semibold text-accent-paper">Kanji Graph</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-300">
-          A personal explorer for connections between Japanese words you've learned. Words are linked by shared kanji, homophones, and visually similar characters.
+          Personal kanji connection explorer. Browse the full graph in{" "}
+          <span className="text-ink-100">global view</span>, or click any word to enter{" "}
+          <span className="text-ink-100">focus mode</span> — a zoomed-in radial layout showing that word and its neighbors.
         </p>
 
+        {/* Global view */}
         <div className="mt-5">
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">Interactions</div>
-          <div className="mt-2 space-y-1.5">
-            {INTERACTIONS.map(([action, result]) => (
-              <div key={action} className="flex gap-3 text-sm">
-                <span className="w-44 shrink-0 text-ink-300">{action}</span>
-                <span className="text-ink-500">{result}</span>
-              </div>
-            ))}
-          </div>
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">Global view</div>
+          <InteractionTable rows={GLOBAL_VIEW} />
         </div>
 
-        <div className="mt-5">
+        {/* Focus mode */}
+        <div className="mt-4">
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">Focus mode</div>
+          <InteractionTable rows={FOCUS_MODE} />
+        </div>
+
+        {/* Edge types */}
+        <div className="mt-4">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">Edge types</div>
-          <div className="mt-2 space-y-2">
+          <div className="mt-1.5 space-y-2">
             {EDGE_TYPES.map((e) => (
-              <div key={e.label} className="flex items-start gap-3 text-sm">
+              <div key={e.label} className="flex items-start gap-3">
                 <span
-                  className="mt-1.5 inline-block h-px w-6 shrink-0"
+                  className="mt-[5px] inline-block h-px w-5 shrink-0"
                   style={{ background: e.color }}
                 />
                 <div>
-                  <span className="text-ink-100">{e.label}</span>
-                  <span className="ml-2 text-ink-500">{e.desc}</span>
+                  <div className="text-sm text-ink-100">{e.label}</div>
+                  <div className="text-[11px] text-ink-500">{e.desc}</div>
                 </div>
               </div>
             ))}
