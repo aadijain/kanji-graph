@@ -47,7 +47,7 @@ export default function DetailsPanel() {
         sameReading.push(other);
       } else if (e.type === "similar-kanji") {
         for (const k of e.via) {
-          if (subject.kanji.includes(k)) {
+          if (!subject.kanji.includes(k)) {
             const arr = similarByKanji.get(k) ?? [];
             arr.push(other);
             similarByKanji.set(k, arr);
