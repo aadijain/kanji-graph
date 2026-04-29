@@ -52,12 +52,12 @@ One Japanese word per line. Lines starting with `#` and blank lines are ignored.
 
 ### `data/similar-kanji.tsv`
 
-Pairs of visually similar / commonly confused kanji, one pair per tab-separated line. Order within a pair doesn't matter; duplicates are ignored.
+Tab-separated groups of visually similar / commonly confused kanji, one group per line. All kanji within a group are treated as mutually similar. Order within a group doesn't matter; duplicates are ignored.
 
 ```tsv
 大	太
 日	目
-本	木
+木	本	末	未
 ```
 
 ## Dictionary setup
@@ -87,7 +87,7 @@ Key configuration files:
 | Build pipeline constants -- dictionary paths, data file paths, output path | `scripts/constants.ts` |
 | Settings presets -- animation speeds, zoom levels, layout density values | `src/lib/settings.ts` |
 | Word list | `data/words.txt` |
-| Similar-kanji pairs | `data/similar-kanji.tsv` |
+| Similar-kanji groups | `data/similar-kanji.tsv` |
 | Audio server URL (runtime override) | `.env.local` -> `VITE_AUDIO_BASE` |
 
 ## Disclaimers
