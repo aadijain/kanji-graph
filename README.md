@@ -6,11 +6,12 @@ Interactive web tool for visualizing connections between Japanese words you've l
 
 ```bash
 npm install
-npm run build-graph   # generate public/graph.json from data/words.txt
-npm run dev           # dev server at http://localhost:5173
+npm run fetch-jitendex  # download Jitendex dictionary (one-time)
+npm run build-graph     # generate public/graph.json from data/words.txt
+npm run dev             # dev server at http://localhost:5173
 ```
 
-The first `build-graph` will warn about a missing Jitendex dictionary and fall back to a 20-word seed list -- that's fine for testing. See [Dictionary setup](#dictionary-setup) to get full lookups.
+`fetch-jitendex` is a one-time step -- it skips the download if the file already exists. Without it, `build-graph` falls back to a 20-word seed list (fine for testing). See [Dictionary setup](#dictionary-setup) for details.
 
 ## Commands
 
@@ -18,6 +19,7 @@ The first `build-graph` will warn about a missing Jitendex dictionary and fall b
 |---|---|
 | `npm run dev` | Vite dev server on `:5173` |
 | `npm run build-graph` | Read `data/words.txt`, look up each word, write `public/graph.json` |
+| `npm run fetch-jitendex` | Download the latest Jitendex Yomitan zip to `~/.cache/kanji-graph/jitendex.zip` |
 | `npm run build` | Type-check + production build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 
@@ -53,13 +55,16 @@ A pair only produces edges in the graph when both kanji appear (in different wor
 
 ### Jitendex (recommended)
 
-Jitendex is a Yomitan-format dictionary based on JMdict. Download the Yomitan `.zip` from <https://jitendex.org> and place it at:
+Jitendex is a Yomitan-format dictionary based on JMdict.
 
-```
-~/.cache/kanji-graph/jitendex.zip
+```bash
+npm run fetch-jitendex      # downloads to ~/.cache/kanji-graph/jitendex.zip
+npm run fetch-jitendex -- --force  # re-download even if the file exists
 ```
 
-Or point to a custom path via environment variable:
+Or download manually from <https://jitendex.org> and place the zip at `~/.cache/kanji-graph/jitendex.zip`.
+
+To use a custom path:
 
 ```bash
 JITENDEX_PATH=/path/to/jitendex.zip npm run build-graph
