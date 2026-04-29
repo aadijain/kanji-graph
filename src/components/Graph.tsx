@@ -148,7 +148,7 @@ export default function Graph() {
       map.set(other, d);
     }
     const result = new Map<string, NData>();
-    const typePriority: Edge["type"][] = ["shared-kanji", "same-reading", "similar-kanji"];
+    const typePriority: Edge["type"][] = ["shared-kanji", "similar-kanji", "same-reading"];
     for (const [id, d] of map) {
       const primaryType = typePriority.find((t) => d.types.includes(t)) ?? d.types[0];
       result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types });

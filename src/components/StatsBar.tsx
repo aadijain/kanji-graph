@@ -29,7 +29,7 @@ export default function StatsBar() {
       >
         {expanded ? (
           <>
-            {(["shared-kanji", "same-reading", "similar-kanji"] as const).map((t, i) => (
+            {(["shared-kanji", "similar-kanji", "same-reading"] as const).map((t, i) => (
               <span key={t}>
                 {i > 0 && <span className="text-ink-600"> · </span>}
                 <span style={{ color: EDGE_TYPE_META[t].hex }}>{byType[t] ?? 0}</span>

@@ -45,19 +45,19 @@ export const EDGE_TYPE_META: Record<
     muted:   "rgba(212, 168, 87, 0.18)",
     ambient: "rgba(212, 168, 87, 0.05)",
   },
-  "same-reading": {
-    label: "same reading",
-    hex: "#7aa8d9",
-    active:  "rgba(122, 168, 217, 0.85)",
-    muted:   "rgba(122, 168, 217, 0.18)",
-    ambient: "rgba(122, 168, 217, 0.05)",
-  },
   "similar-kanji": {
     label: "similar kanji",
     hex: "#a880d4",
     active:  "rgba(168, 128, 212, 0.85)",
     muted:   "rgba(168, 128, 212, 0.18)",
     ambient: "rgba(168, 128, 212, 0.05)",
+  },
+  "same-reading": {
+    label: "same reading",
+    hex: "#7aa8d9",
+    active:  "rgba(122, 168, 217, 0.85)",
+    muted:   "rgba(122, 168, 217, 0.18)",
+    ambient: "rgba(122, 168, 217, 0.05)",
   },
 };
 

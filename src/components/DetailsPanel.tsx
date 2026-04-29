@@ -127,18 +127,6 @@ export default function DetailsPanel() {
         </div>
       )}
 
-      {connections && connections.sameReading.length > 0 && (
-        <div className="mt-4 border-t border-ink-700 pt-3">
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">
-            same reading
-          </div>
-          <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
-               style={{ color: "#7aa8d9" }}>
-            {connections.sameReading.map((o) => <span key={o}>{o}</span>)}
-          </div>
-        </div>
-      )}
-
       {connections && connections.similarByKanji.size > 0 && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">
@@ -161,6 +149,18 @@ export default function DetailsPanel() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {connections && connections.sameReading.length > 0 && (
+        <div className="mt-4 border-t border-ink-700 pt-3">
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+            same reading
+          </div>
+          <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
+               style={{ color: "#7aa8d9" }}>
+            {connections.sameReading.map((o) => <span key={o}>{o}</span>)}
           </div>
         </div>
       )}
