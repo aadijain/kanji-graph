@@ -1,8 +1,6 @@
-const ENTRIES: { color: string; label: string }[] = [
-  { color: "rgba(212, 168, 87, 0.85)", label: "shared kanji" },
-  { color: "rgba(122, 168, 217, 0.85)", label: "same reading" },
-  { color: "rgba(168, 128, 212, 0.85)", label: "similar kanji" },
-];
+import { EDGE_TYPE_META } from "../lib/constants";
+
+const ENTRIES = Object.values(EDGE_TYPE_META).map(({ active, label }) => ({ color: active, label }));
 
 export default function Legend() {
   return (

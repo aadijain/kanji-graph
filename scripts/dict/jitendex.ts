@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import type { DictionarySource, WordEntry } from "./source.ts";
+import { JITENDEX_CACHE_SUBPATH, JITENDEX_LOCAL_SUBPATH } from "../constants.ts";
 
 // Yomitan term-bank row layout (v3):
 // [expression, reading, definitionTags, rules, score, glossary, sequence, termTags]
@@ -22,8 +23,8 @@ type StructuredNode =
 function findZipPath(): string | null {
   const candidates = [
     process.env.JITENDEX_PATH,
-    resolve(process.cwd(), "data/dict/jitendex.zip"),
-    resolve(homedir(), ".cache/kanji-graph/jitendex.zip"),
+    resolve(process.cwd(), JITENDEX_LOCAL_SUBPATH),
+    resolve(homedir(), JITENDEX_CACHE_SUBPATH),
   ].filter((p): p is string => !!p);
   return candidates.find((p) => existsSync(p)) ?? null;
 }

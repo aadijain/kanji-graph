@@ -3,11 +3,10 @@ import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
-
-const URL = "https://github.com/stephenmk/stephenmk.github.io/releases/latest/download/jitendex-yomitan.zip";
+import { JITENDEX_URL, JITENDEX_CACHE_SUBPATH } from "./constants.ts";
 
 const dest = resolve(
-  process.env.JITENDEX_PATH ?? resolve(homedir(), ".cache/kanji-graph/jitendex.zip")
+  process.env.JITENDEX_PATH ?? resolve(homedir(), JITENDEX_CACHE_SUBPATH)
 );
 
 const force = process.argv.includes("--force");
@@ -21,7 +20,7 @@ if (existsSync(dest) && !force) {
 mkdirSync(dirname(dest), { recursive: true });
 
 console.log(`[fetch-jitendex] downloading → ${dest}`);
-const res = await fetch(URL, { redirect: "follow" });
+const res = await fetch(JITENDEX_URL, { redirect: "follow" });
 if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
 
 const total = Number(res.headers.get("content-length") ?? 0);

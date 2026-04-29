@@ -1,11 +1,12 @@
 import { useStore } from "../store";
+import { AUDIO_DEFAULT_BASE, TTS_LANG } from "./constants";
 
 // Read the effective audio server base at call time so runtime settings override
 // the build-time VITE_AUDIO_BASE without a page reload.
 function getBase(): string {
   const override = useStore.getState().settings.audioServerUrl.trim();
   if (override) return override.replace(/\/+$/, "");
-  return (import.meta.env.VITE_AUDIO_BASE as string | undefined)?.replace(/\/+$/, "") ?? "/audio";
+  return (import.meta.env.VITE_AUDIO_BASE as string | undefined)?.replace(/\/+$/, "") ?? AUDIO_DEFAULT_BASE;
 }
 
 let currentAudio: HTMLAudioElement | null = null;
@@ -91,7 +92,7 @@ function speakTTS(text: string): Promise<void> {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve();
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ja-JP";
+    u.lang = TTS_LANG;
     u.onend = () => resolve();
     u.onerror = () => resolve();
     window.speechSynthesis.speak(u);

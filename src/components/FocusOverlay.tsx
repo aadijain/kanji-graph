@@ -1,6 +1,5 @@
 import { useStore } from "../store";
-
-const KANJI_RE = /[一-鿿]/;
+import { KANJI_RE } from "../lib/constants";
 
 export default function FocusOverlay() {
   const focused = useStore((s) => s.focused);

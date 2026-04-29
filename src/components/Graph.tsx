@@ -11,14 +11,26 @@ import {
   LAYOUT_DENSITY_VALUES,
   NODE_SIZE_VALUES,
 } from "../lib/settings";
-
-const LAYOUT_KEY = "kanji-graph:layout:v1";
+import {
+  LAYOUT_STORAGE_KEY,
+  NODE_COLORS,
+  EDGE_TYPE_META,
+  FONT_FAMILY,
+  GRAPH_BG,
+  COOLDOWN_TICKS,
+  D3_ALPHA_DECAY,
+  D3_VELOCITY_DECAY,
+  NODE_REL_SIZE,
+  FOCUS_RING_RADIUS_MULTIPLIER,
+  RESIZE_FIT_MS,
+  ENGINE_STOP_FIT_MS,
+} from "../lib/constants";
 
 type Pos = { id: string; x: number; y: number };
 
 function loadLayout(): Map<string, Pos> {
   try {
-    const raw = localStorage.getItem(LAYOUT_KEY);
+    const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
     if (!raw) return new Map();
     const arr: Pos[] = JSON.parse(raw);
     return new Map(arr.map((p) => [p.id, p]));
@@ -31,40 +43,10 @@ function saveLayout(nodes: WordNode[]) {
   const arr: Pos[] = nodes
     .filter((n) => typeof n.x === "number" && typeof n.y === "number")
     .map((n) => ({ id: n.id, x: n.x!, y: n.y! }));
-  localStorage.setItem(LAYOUT_KEY, JSON.stringify(arr));
+  localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(arr));
 }
 
-const COLORS = {
-  nodeDefault: "#e8dccd",
-  nodeNeighbor: "#f3e7d3",
-  nodeFocus: "#ffffff",
-  nodeMuted: "#5a6078",
-  edgeHidden: "rgba(0, 0, 0, 0)",
-  bridgeKanji: "#d4a857",
-  bridgeKanjiHi: "#ffd47a",
-};
-
-// Per edge-type colors. Active = on hover/focus; Ambient = global resting state.
-const EDGE_COLORS: Record<
-  "shared-kanji" | "same-reading" | "similar-kanji",
-  { active: string; muted: string; ambient: string }
-> = {
-  "shared-kanji": {
-    active: "rgba(212, 168, 87, 0.85)",
-    muted: "rgba(212, 168, 87, 0.18)",
-    ambient: "rgba(212, 168, 87, 0.05)",
-  },
-  "same-reading": {
-    active: "rgba(122, 168, 217, 0.85)",
-    muted: "rgba(122, 168, 217, 0.18)",
-    ambient: "rgba(122, 168, 217, 0.05)",
-  },
-  "similar-kanji": {
-    active: "rgba(168, 128, 212, 0.85)",
-    muted: "rgba(168, 128, 212, 0.18)",
-    ambient: "rgba(168, 128, 212, 0.05)",
-  },
-};
+const COLORS = NODE_COLORS;
 
 function drawLabel(
   ctx: CanvasRenderingContext2D,
@@ -78,7 +60,7 @@ function drawLabel(
   highlightColor: string,
 ) {
   const chars = [...word];
-  ctx.font = `${weight} ${fontSize}px "Noto Sans JP", "Hiragino Sans", sans-serif`;
+  ctx.font = `${weight} ${fontSize}px ${FONT_FAMILY}`;
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
   const widths = chars.map((c) => ctx.measureText(c).width);
@@ -282,7 +264,7 @@ export default function Graph() {
   // Resize: refit only in global view.
   useEffect(() => {
     const handle = () => {
-      if (!focused) fgRef.current?.zoomToFit(400, 80);
+      if (!focused) fgRef.current?.zoomToFit(RESIZE_FIT_MS, 80);
     };
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
@@ -292,23 +274,23 @@ export default function Graph() {
     <ForceGraph2D
       ref={fgRef}
       graphData={data}
-      backgroundColor="#0b0c0f"
-      cooldownTicks={300}
+      backgroundColor={GRAPH_BG}
+      cooldownTicks={COOLDOWN_TICKS}
       onEngineStop={() => {
         if (!focused) {
           saveLayout(data.nodes as WordNode[]);
-          fgRef.current?.zoomToFit(600, 80);
+          fgRef.current?.zoomToFit(ENGINE_STOP_FIT_MS, 80);
         }
       }}
-      d3AlphaDecay={0.02}
-      d3VelocityDecay={0.3}
+      d3AlphaDecay={D3_ALPHA_DECAY}
+      d3VelocityDecay={D3_VELOCITY_DECAY}
       enablePanInteraction={!focused}
       enableZoomInteraction={!focused}
       onBackgroundClick={() => {
         if (focused) setFocused(null);
       }}
       // ----- nodes -----
-      nodeRelSize={4}
+      nodeRelSize={NODE_REL_SIZE}
       onNodeHover={(n) => setHovered((n as WordNode | null) ?? null)}
       onNodeClick={(n) => {
         const node = n as WordNode;
@@ -334,21 +316,21 @@ export default function Graph() {
         ctx.beginPath();
         ctx.arc(n.x!, n.y!, dotR, 0, Math.PI * 2);
         if (isFocus) {
-          ctx.fillStyle = COLORS.nodeFocus;
+          ctx.fillStyle = COLORS.focus;
           ctx.shadowColor = "rgba(255,255,255,0.4)";
           ctx.shadowBlur = 16;
         } else if (focused && isNeighbor) {
           const via = viaByNeighbor.get(n.id) ?? [];
           const dimByKanji = !!hoveredKanji && !via.includes(hoveredKanji);
-          ctx.fillStyle = dimByKanji ? COLORS.nodeMuted : COLORS.bridgeKanji;
+          ctx.fillStyle = dimByKanji ? COLORS.muted : COLORS.bridgeKanji;
         } else if (isHovered) {
           ctx.fillStyle = COLORS.bridgeKanjiHi;
         } else if (isHoverNeighbor) {
           ctx.fillStyle = COLORS.bridgeKanji;
         } else if (dimmedByHover) {
-          ctx.fillStyle = COLORS.nodeMuted;
+          ctx.fillStyle = COLORS.muted;
         } else {
-          ctx.fillStyle = COLORS.nodeDefault;
+          ctx.fillStyle = COLORS.default;
         }
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -356,7 +338,7 @@ export default function Graph() {
         // soft ring around focus
         if (isFocus) {
           ctx.beginPath();
-          ctx.arc(n.x!, n.y!, dotR * 2.4, 0, Math.PI * 2);
+          ctx.arc(n.x!, n.y!, dotR * FOCUS_RING_RADIUS_MULTIPLIER, 0, Math.PI * 2);
           ctx.strokeStyle = "rgba(255,255,255,0.18)";
           ctx.lineWidth = 1 / globalScale;
           ctx.stroke();
@@ -365,7 +347,7 @@ export default function Graph() {
         // label — focus node's label is rendered as HTML overlay instead.
         if (isFocus) return;
 
-        let baseColor = COLORS.nodeDefault;
+        let baseColor = COLORS.default;
         let weight = 500;
         let highlightSet: Set<string> | undefined;
         let highlightColor = COLORS.bridgeKanji;
@@ -379,17 +361,17 @@ export default function Graph() {
               highlightSet = new Set([hoveredKanji]);
               highlightColor = COLORS.bridgeKanjiHi;
             } else {
-              baseColor = COLORS.nodeMuted;
+              baseColor = COLORS.muted;
             }
           } else {
-            baseColor = COLORS.nodeNeighbor;
+            baseColor = COLORS.neighbor;
             highlightSet = new Set(via);
             highlightColor = COLORS.bridgeKanji;
           }
         } else if (isHoverNeighbor) {
-          baseColor = "#f3e7d3";
+          baseColor = COLORS.neighbor;
         } else if (dimmedByHover) {
-          baseColor = COLORS.nodeMuted;
+          baseColor = COLORS.muted;
         }
 
         drawLabel(
@@ -420,7 +402,7 @@ export default function Graph() {
         if (!edgeVisibility[l.type]) return COLORS.edgeHidden;
         const s = endpointId(l.source);
         const t = endpointId(l.target);
-        const palette = EDGE_COLORS[l.type];
+        const palette = EDGE_TYPE_META[l.type];
         if (focused) {
           if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
           // Kanji-hover filter only meaningful for kanji-bearing edge types.

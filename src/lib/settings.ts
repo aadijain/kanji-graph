@@ -1,4 +1,5 @@
 import type { EdgeType } from "../types";
+import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY } from "./constants";
 
 export type AnimationSpeed = "instant" | "fast" | "normal" | "slow";
 export type FocusZoom = "close" | "normal" | "far";
@@ -65,8 +66,8 @@ export const NODE_SIZE_VALUES: Record<NodeSize, number> = {
   large: 24,
 };
 
-const KEY = "kanji-graph:settings:v2";
-const KEY_V1 = "kanji-graph:settings:v1";
+const KEY = SETTINGS_STORAGE_KEY;
+const KEY_V1 = SETTINGS_LEGACY_KEY;
 
 export function loadSettings(): Settings {
   try {

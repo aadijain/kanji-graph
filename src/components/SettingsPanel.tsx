@@ -8,16 +8,12 @@ import {
   type NeighborSpread,
   type NodeSize,
 } from "../lib/settings";
+import { LAYOUT_STORAGE_KEY, EDGE_TYPE_META } from "../lib/constants";
 import type { EdgeType } from "../types";
 
-const LAYOUT_KEY = "kanji-graph:layout:v1";
-
-// Edge colors match EDGE_COLORS in Graph.tsx and Legend.tsx.
-const EDGE_ENTRIES: { type: EdgeType; label: string; color: string }[] = [
-  { type: "shared-kanji",  label: "shared kanji",  color: "#d4a857" },
-  { type: "same-reading",  label: "same reading",  color: "#7aa8d9" },
-  { type: "similar-kanji", label: "similar kanji", color: "#a880d4" },
-];
+const EDGE_ENTRIES = (Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][]).map(
+  ([type, { label, hex }]) => ({ type, label, color: hex }),
+);
 
 // ── Primitives ───────────────────────────────────────────────────────────────
 
@@ -263,7 +259,7 @@ export default function SettingsPanel({ onClose }: Props) {
           <div className="flex flex-wrap gap-2 border-t border-ink-800 pt-4">
             <button
               type="button"
-              onClick={() => { localStorage.removeItem(LAYOUT_KEY); window.location.reload(); }}
+              onClick={() => { localStorage.removeItem(LAYOUT_STORAGE_KEY); window.location.reload(); }}
               className="rounded border border-ink-700 px-3 py-1 text-xs text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
             >
               Reset positions
