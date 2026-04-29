@@ -10,7 +10,13 @@ type TermRow = [string, string, string, string, number, unknown, number, string]
 
 type StructuredNode =
   | string
-  | { tag?: string; text?: string; content?: StructuredNode | StructuredNode[]; type?: string }
+  | {
+      tag?: string;
+      text?: string;
+      content?: StructuredNode | StructuredNode[];
+      type?: string;
+      data?: { content?: string; [k: string]: unknown };
+    }
   | StructuredNode[];
 
 function findZipPath(): string | null {
@@ -22,16 +28,41 @@ function findZipPath(): string | null {
   return candidates.find((p) => existsSync(p)) ?? null;
 }
 
-function extractText(node: StructuredNode | undefined): string {
+// Extract plain text from a node, stripping rt (furigana) and hyperlinks.
+function extractPlainText(node: StructuredNode | undefined): string {
   if (node == null) return "";
   if (typeof node === "string") return node;
-  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (Array.isArray(node)) return node.map(extractPlainText).join("");
   if (typeof node === "object") {
     if (node.type === "image") return "";
+    if (node.tag === "rt") return "";  // furigana — keep only base kanji
+    if (node.tag === "a") return "";   // hyperlinks
     if (typeof node.text === "string") return node.text;
-    if (node.content !== undefined) return extractText(node.content as StructuredNode);
+    if (node.content !== undefined) return extractPlainText(node.content as StructuredNode);
   }
   return "";
+}
+
+// Walk the structured-content tree and collect only glossary list items.
+// Whitelist approach: only ul/ol[data.content=glossary] contributes text;
+// everything else (POS tags, forms, examples, attribution, xrefs) is skipped.
+function extractGlosses(node: StructuredNode | undefined, out: string[]): void {
+  if (node == null) return;
+  if (typeof node === "string") return;
+  if (Array.isArray(node)) { for (const n of node) extractGlosses(n, out); return; }
+  if (typeof node === "object") {
+    const ct = node.data?.content;
+    if (ct === "glossary") {
+      // Each li child is one gloss item.
+      const items = Array.isArray(node.content) ? node.content : node.content ? [node.content] : [];
+      for (const item of items) {
+        const text = cleanText(extractPlainText(item as StructuredNode));
+        if (text) out.push(text);
+      }
+      return;
+    }
+    if (node.content !== undefined) extractGlosses(node.content as StructuredNode, out);
+  }
 }
 
 function cleanText(s: string): string {
@@ -48,19 +79,23 @@ function parseGlossary(glossary: unknown): string[] {
   if (!Array.isArray(glossary)) return [];
   const out: string[] = [];
   for (const item of glossary) {
-    let text: string;
     if (typeof item === "string") {
-      text = item;
+      const text = cleanText(item);
+      if (text) out.push(text);
     } else if (item && typeof item === "object") {
       const obj = item as { type?: string; text?: string; content?: unknown };
       if (obj.type === "image") continue;
-      if (typeof obj.text === "string") text = obj.text;
-      else text = extractText(obj.content as StructuredNode);
-    } else {
-      continue;
+      if (obj.type === "structured-content") {
+        // Whitelist: only pull from glossary list items.
+        extractGlosses(obj.content as StructuredNode, out);
+      } else if (typeof obj.text === "string") {
+        const text = cleanText(obj.text);
+        if (text) out.push(text);
+      } else {
+        const text = cleanText(extractPlainText(obj.content as StructuredNode));
+        if (text) out.push(text);
+      }
     }
-    text = cleanText(text);
-    if (text) out.push(text);
   }
   return out;
 }
