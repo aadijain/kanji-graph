@@ -128,27 +128,27 @@ class JitendexSource implements DictionarySource {
       return;
     }
 
-    let total = 0;
     for (const bank of banks) {
       const rows = JSON.parse(bank.getData().toString("utf8")) as TermRow[];
       for (const row of rows) {
         const [expression, reading, , , score, glossary, , termTags] = row;
         if (!expression) continue;
-        // First entry per surface form wins. Jitendex orders by sense priority.
-        if (this.byWord.has(expression)) continue;
+        const numScore = typeof score === "number" ? score : -Infinity;
+        const existing = this.byWord.get(expression);
+        // Keep the highest-score entry so the most common reading wins over archaic ones.
+        if (existing && (existing.frequency ?? -Infinity) >= numScore) continue;
         const glosses = parseGlossary(glossary);
         if (glosses.length === 0) continue;
         this.byWord.set(expression, {
           word: expression,
           reading: reading ?? "",
           glosses,
-          frequency: typeof score === "number" ? score : undefined,
+          frequency: numScore === -Infinity ? undefined : numScore,
           jlpt: jlptFromTags(typeof termTags === "string" ? termTags : ""),
         });
-        total++;
       }
     }
-    console.log(`[jitendex] indexed ${total} entries from ${banks.length} term banks`);
+    console.log(`[jitendex] indexed ${this.byWord.size} entries from ${banks.length} term banks`);
   }
 
   async lookup(word: string) {
