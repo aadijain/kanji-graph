@@ -12,14 +12,15 @@ const GLOBAL_VIEW = [
 // Focus mode: click-driven, one word at a time.
 const FOCUS_MODE = [
   ["Click a neighbor or edge", "Navigate to that word"],
-  ["Hover a kanji", "Filter connections to that kanji"],
-  ["Esc / click background", "Return to global view"],
+  ["Hover a kanji", "Filter connections by that kanji"],
+  ["Hover the reading", "Filter to same-reading connections"],
+  ["Left edge / Esc", "Return to global view"],
 ] as const;
 
 const EDGE_TYPES = [
   { color: "rgba(212, 168, 87, 0.9)", label: "shared kanji", desc: "both words contain the same kanji character" },
-  { color: "rgba(122, 168, 217, 0.9)", label: "same reading", desc: "homophones — identical hiragana reading" },
   { color: "rgba(168, 128, 212, 0.9)", label: "similar kanji", desc: "words contain visually confusable kanji pairs" },
+  { color: "rgba(122, 168, 217, 0.9)", label: "same reading", desc: "homophones — identical hiragana reading" },
 ];
 
 function InteractionTable({ rows }: { rows: readonly (readonly [string, string])[] }) {

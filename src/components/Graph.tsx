@@ -299,9 +299,7 @@ export default function Graph() {
       d3VelocityDecay={D3_VELOCITY_DECAY}
       enablePanInteraction={!focused}
       enableZoomInteraction={!focused}
-      onBackgroundClick={() => {
-        if (focused) setFocused(null);
-      }}
+      onBackgroundClick={() => {}}
       // ----- nodes -----
       nodeRelSize={NODE_REL_SIZE}
       onNodeHover={(n) => setHovered((n as WordNode | null) ?? null)}
