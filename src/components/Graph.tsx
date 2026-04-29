@@ -125,22 +125,34 @@ export default function Graph() {
     return out;
   }, [focal, graph.edges, edgeVisibility]);
 
-  // For each neighbor of focused: which kanji bridge them (across all edge types).
-  // same-reading edges contribute no kanji; similar-kanji edges contribute the similar pair.
-  const viaByNeighbor = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    if (!focused) return new Map<string, string[]>();
-    for (const e of graph.edges) {
+  // For each neighbor of focused: bridging kanji + which edge type contributed each.
+  const neighborData = useMemo(() => {
+    type NData = { via: string[]; kanjiType: Map<string, Edge["type"]>; primaryType: Edge["type"] };
+    const map = new Map<string, { viaSet: Set<string>; kanjiType: Map<string, Edge["type"]>; types: Edge["type"][] }>();
+    if (!focused) return new Map<string, NData>();
+    for (const e of graph.edges as Edge[]) {
       if (!edgeVisibility[e.type]) continue;
       const s = endpointId(e.source);
       const t = endpointId(e.target);
       if (s !== focused.id && t !== focused.id) continue;
       const other = s === focused.id ? t : s;
-      const set = map.get(other) ?? new Set<string>();
-      if (e.type !== "same-reading") for (const k of e.via) set.add(k);
-      map.set(other, set);
+      const d = map.get(other) ?? { viaSet: new Set(), kanjiType: new Map(), types: [] as Edge["type"][] };
+      d.types.push(e.type);
+      if (e.type !== "same-reading") {
+        for (const k of e.via) {
+          d.viaSet.add(k);
+          if (!d.kanjiType.has(k)) d.kanjiType.set(k, e.type);
+        }
+      }
+      map.set(other, d);
     }
-    return new Map([...map.entries()].map(([k, v]) => [k, [...v]]));
+    const result = new Map<string, NData>();
+    const typePriority: Edge["type"][] = ["shared-kanji", "same-reading", "similar-kanji"];
+    for (const [id, d] of map) {
+      const primaryType = typePriority.find((t) => d.types.includes(t)) ?? d.types[0];
+      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType });
+    }
+    return result;
   }, [focused, graph.edges, edgeVisibility]);
 
   // Smooth transition on focus enter / change / exit.
@@ -320,9 +332,13 @@ export default function Graph() {
           ctx.shadowColor = "rgba(255,255,255,0.4)";
           ctx.shadowBlur = 16;
         } else if (focused && isNeighbor) {
-          const via = viaByNeighbor.get(n.id) ?? [];
+          const nd = neighborData.get(n.id);
+          const via = nd?.via ?? [];
           const dimByKanji = !!hoveredKanji && !via.includes(hoveredKanji);
-          ctx.fillStyle = dimByKanji ? COLORS.muted : COLORS.bridgeKanji;
+          const dotColor = hoveredKanji
+            ? EDGE_TYPE_META[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"].hex
+            : EDGE_TYPE_META[nd?.primaryType ?? "shared-kanji"].hex;
+          ctx.fillStyle = dimByKanji ? COLORS.muted : dotColor;
         } else if (isHovered) {
           ctx.fillStyle = COLORS.bridgeKanjiHi;
         } else if (isHoverNeighbor) {
@@ -353,20 +369,21 @@ export default function Graph() {
         let highlightColor = COLORS.bridgeKanji;
 
         if (focused && isNeighbor) {
-          const via = viaByNeighbor.get(n.id) ?? [];
+          const nd = neighborData.get(n.id);
+          const via = nd?.via ?? [];
           if (hoveredKanji) {
             if (via.includes(hoveredKanji)) {
               baseColor = "#ffffff";
               weight = 600;
               highlightSet = new Set([hoveredKanji]);
-              highlightColor = COLORS.bridgeKanjiHi;
+              highlightColor = EDGE_TYPE_META[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"].hex;
             } else {
               baseColor = COLORS.muted;
             }
           } else {
             baseColor = COLORS.neighbor;
             highlightSet = new Set(via);
-            highlightColor = COLORS.bridgeKanji;
+            highlightColor = EDGE_TYPE_META[nd?.primaryType ?? "shared-kanji"].hex;
           }
         } else if (isHoverNeighbor) {
           baseColor = COLORS.neighbor;
