@@ -5,6 +5,7 @@ import DetailsPanel from "./components/DetailsPanel";
 import StatsBar from "./components/StatsBar";
 import Legend from "./components/Legend";
 import FocusOverlay from "./components/FocusOverlay";
+import SearchOverlay from "./components/SearchOverlay";
 import InfoModal from "./components/InfoModal";
 import SettingsPanel from "./components/SettingsPanel";
 import { playPronunciation } from "./lib/audio";
@@ -107,6 +108,7 @@ export default function App() {
       <StatsBar />
       <Legend />
       <FocusOverlay />
+      <SearchOverlay blocked={infoOpen || settingsOpen} />
       <DetailsPanel />
 
       {/* Info / Settings buttons — bottom-right */}

@@ -12,6 +12,7 @@ Interactive web tool for visualizing connections between Japanese words you've l
 
 - **Graph view** -- force-directed canvas graph; hover a word to highlight its connections
 - **Focus mode** -- click a word to zoom in, reposition neighbors radially, and see per-kanji detail
+- **Search** -- type anywhere to search by kanji, kana reading, or romaji; arrow keys + Enter to jump
 - **Three edge types** -- shared kanji, same reading, visually similar kanji
 - **Pronunciation audio** -- plays via a local Yomitan audio server; falls back to browser TTS
 - **Persistent layout** -- node positions saved to localStorage so the graph persists between reloads

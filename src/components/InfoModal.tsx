@@ -7,6 +7,7 @@ const GLOBAL_VIEW = [
   ["Hover a word", "Show its connections"],
   ["Scroll", "Zoom in / out"],
   ["Click a word", "Enter focus mode"],
+  ["Type anything", "Search by kanji, reading, or romaji"],
 ] as const;
 
 // Focus mode: click-driven, one word at a time.
