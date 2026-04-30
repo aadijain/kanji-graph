@@ -214,12 +214,16 @@ export default function Graph() {
       targets.set(focused.id, { x: focusNode.x ?? 0, y: focusNode.y ?? 0 });
       for (const [id, pos] of radial) targets.set(id, pos);
 
+      // Capture start positions and immediately pin every node at its current
+      // position. This freezes the simulation for the duration of the tween so
+      // an actively-running simulation (e.g. on cold page load) can't fight it.
       const starts = new Map<string, XY>();
       for (const n of nodes) {
-        if (n.x != null && n.y != null) starts.set(n.id, { x: n.x, y: n.y });
-        // Unpin everything before tween (previous focus may have pinned them).
-        n.fx = undefined;
-        n.fy = undefined;
+        const x = n.fx ?? n.x ?? 0;
+        const y = n.fy ?? n.y ?? 0;
+        starts.set(n.id, { x, y });
+        n.x = x; n.y = y;
+        n.fx = x; n.fy = y;
       }
 
       fg.centerAt(focusNode.x ?? 0, focusNode.y ?? 0, transitionMs);
@@ -233,8 +237,10 @@ export default function Graph() {
             const start = starts.get(n.id);
             const target = targets.get(n.id);
             if (!start || !target) continue;
-            n.x = start.x + (target.x - start.x) * t;
-            n.y = start.y + (target.y - start.y) * t;
+            const x = start.x + (target.x - start.x) * t;
+            const y = start.y + (target.y - start.y) * t;
+            n.x = n.fx = x;
+            n.y = n.fy = y;
           }
           (fg as unknown as { refresh?: () => void }).refresh?.();
         },
@@ -242,8 +248,8 @@ export default function Graph() {
           for (const n of nodes) {
             const target = targets.get(n.id);
             if (target) {
-              n.fx = target.x;
-              n.fy = target.y;
+              n.x = n.fx = target.x;
+              n.y = n.fy = target.y;
             }
           }
           setTransitioning(false);
