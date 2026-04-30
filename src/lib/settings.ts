@@ -1,11 +1,12 @@
 import type { EdgeType } from "../types";
-import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY } from "./constants";
+import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY, SETTINGS_LEGACY_KEY_V2 } from "./constants";
 
 export type AnimationSpeed = "instant" | "fast" | "normal" | "slow";
 export type FocusZoom = "close" | "normal" | "far";
 export type NeighborSpread = "tight" | "normal" | "wide";
 export type LayoutDensity = "dense" | "normal" | "open" | "sparse";
 export type NodeSize = "small" | "medium" | "large";
+export type Theme = "dark" | "light";
 
 export interface Settings {
   audioAutoPlay: boolean;
@@ -16,6 +17,7 @@ export interface Settings {
   neighborSpread: NeighborSpread;
   layoutDensity: LayoutDensity;
   nodeSize: NodeSize;
+  theme: Theme;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -27,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   neighborSpread: "normal",
   layoutDensity: "normal",
   nodeSize: "medium",
+  theme: "dark",
 };
 
 // Mapping constants — shared between Graph.tsx and SettingsPanel.tsx.
@@ -67,6 +70,7 @@ export const NODE_SIZE_VALUES: Record<NodeSize, number> = {
 };
 
 const KEY = SETTINGS_STORAGE_KEY;
+const KEY_V2 = SETTINGS_LEGACY_KEY_V2;
 const KEY_V1 = SETTINGS_LEGACY_KEY;
 
 export function loadSettings(): Settings {
@@ -78,6 +82,17 @@ export function loadSettings(): Settings {
         ...DEFAULT_SETTINGS,
         ...p,
         edgeVisibility: { ...DEFAULT_SETTINGS.edgeVisibility, ...p.edgeVisibility },
+      };
+    }
+    // Migrate from v2: carry all preserved fields; theme defaults to "dark".
+    const rawV2 = localStorage.getItem(KEY_V2);
+    if (rawV2) {
+      const v2 = JSON.parse(rawV2) as Partial<Omit<Settings, "theme">>;
+      return {
+        ...DEFAULT_SETTINGS,
+        ...v2,
+        edgeVisibility: { ...DEFAULT_SETTINGS.edgeVisibility, ...v2.edgeVisibility },
+        theme: "dark",
       };
     }
     // Migrate from v1: preserve the three fields that survived the redesign.

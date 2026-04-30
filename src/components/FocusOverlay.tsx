@@ -56,7 +56,7 @@ export default function FocusOverlay() {
                     : (dim || hoveredReading)
                       ? "text-ink-500"
                       : isKanji
-                        ? "text-white hover:text-accent-gold"
+                        ? "text-ink-100 hover:text-accent-gold"
                         : "text-ink-300",
                 ].join(" ")}
               >

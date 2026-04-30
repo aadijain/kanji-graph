@@ -14,9 +14,9 @@ import {
 import {
   LAYOUT_STORAGE_KEY,
   NODE_COLORS,
+  LIGHT_NODE_COLORS,
   EDGE_TYPE_META,
   FONT_FAMILY,
-  GRAPH_BG,
   COOLDOWN_TICKS,
   D3_ALPHA_DECAY,
   D3_VELOCITY_DECAY,
@@ -45,8 +45,6 @@ function saveLayout(nodes: WordNode[]) {
     .map((n) => ({ id: n.id, x: n.x!, y: n.y! }));
   localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(arr));
 }
-
-const COLORS = NODE_COLORS;
 
 function drawLabel(
   ctx: CanvasRenderingContext2D,
@@ -86,9 +84,28 @@ export default function Graph() {
   const edgeVisibility = useStore((s) => s.settings.edgeVisibility);
   const settings = useStore((s) => s.settings);
 
+  const theme = useStore((s) => s.settings.theme);
+  const COLORS = theme === "light" ? LIGHT_NODE_COLORS : NODE_COLORS;
+
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const cancelTweenRef = useRef<(() => void) | null>(null);
   const cachedPositionsRef = useRef<Map<string, XY>>(new Map());
+
+  // Repaint canvas when theme changes. The simulation's RAF loop may have
+  // stopped, leaving the canvas frozen at the old background colour.
+  // setTimeout(0) defers past the React commit so fgRef holds the updated
+  // ForceGraph2D instance and its internal backgroundColor has been set.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const fg = fgRef.current;
+      if (!fg) return;
+      // pauseAnimation/resumeAnimation are public API and restart the RAF loop,
+      // which repaints the canvas with the current backgroundColor prop.
+      fg.pauseAnimation();
+      fg.resumeAnimation();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [theme]);
 
   // Apply force-layout params whenever density setting changes.
   useEffect(() => {
@@ -287,7 +304,7 @@ export default function Graph() {
     <ForceGraph2D
       ref={fgRef}
       graphData={data}
-      backgroundColor={GRAPH_BG}
+      backgroundColor={COLORS.background}
       cooldownTicks={COOLDOWN_TICKS}
       onEngineStop={() => {
         if (!focused) {
@@ -328,7 +345,7 @@ export default function Graph() {
         ctx.arc(n.x!, n.y!, dotR, 0, Math.PI * 2);
         if (isFocus) {
           ctx.fillStyle = COLORS.focus;
-          ctx.shadowColor = "rgba(255,255,255,0.4)";
+          ctx.shadowColor = COLORS.focusShadow;
           ctx.shadowBlur = 16;
         } else if (focused && isNeighbor) {
           const nd = neighborData.get(n.id);
@@ -358,7 +375,7 @@ export default function Graph() {
         if (isFocus) {
           ctx.beginPath();
           ctx.arc(n.x!, n.y!, dotR * FOCUS_RING_RADIUS_MULTIPLIER, 0, Math.PI * 2);
-          ctx.strokeStyle = "rgba(255,255,255,0.18)";
+          ctx.strokeStyle = COLORS.focusRing;
           ctx.lineWidth = 1 / globalScale;
           ctx.stroke();
         }
@@ -377,7 +394,7 @@ export default function Graph() {
           const isSameReading = nd?.types.includes("same-reading") ?? false;
           if (hoveredKanji) {
             if (via.includes(hoveredKanji)) {
-              baseColor = "#ffffff";
+              baseColor = COLORS.highlight;
               weight = 600;
               highlightSet = new Set([hoveredKanji]);
               highlightColor = EDGE_TYPE_META[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"].hex;
@@ -385,7 +402,7 @@ export default function Graph() {
               baseColor = COLORS.muted;
             }
           } else if (hoveredReading) {
-            baseColor = isSameReading ? "#ffffff" : COLORS.muted;
+            baseColor = isSameReading ? COLORS.highlight : COLORS.muted;
             if (isSameReading) weight = 600;
           } else {
             baseColor = COLORS.neighbor;

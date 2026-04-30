@@ -9,9 +9,39 @@ body,
   margin: 0;
 }
 
+/* ── Dark mode (default) ──────────────────────────────────────────────────── */
+:root {
+  --ink-950: 11 12 15;
+  --ink-900: 16 18 24;
+  --ink-800: 26 29 38;
+  --ink-700: 38 42 54;
+  --ink-600: 62 67 88;
+  --ink-500: 90 96 120;
+  --ink-400: 126 132 160;
+  --ink-300: 168 174 194;
+  --ink-100: 232 234 242;
+  --accent-paper: 232 220 205;
+  --accent-gold: 212 168 87;
+}
+
+/* ── Light mode ───────────────────────────────────────────────────────────── */
+.light {
+  --ink-950: 248 249 250;
+  --ink-900: 233 236 239;
+  --ink-800: 222 226 230;
+  --ink-700: 206 212 218;
+  --ink-600: 173 181 189;
+  --ink-500: 108 117 125;
+  --ink-400: 73 80 87;
+  --ink-300: 52 58 64;
+  --ink-100: 33 37 41;
+  --accent-paper: 148 98 18;
+  --accent-gold: 148 98 18;
+}
+
 body {
-  background: #0b0c0f;
-  color: #e8eaf2;
+  background: rgb(var(--ink-950));
+  color: rgb(var(--ink-100));
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;

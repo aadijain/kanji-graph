@@ -67,7 +67,7 @@ export default function DetailsPanel() {
   }
 
   return (
-    <div className="absolute right-6 top-6 w-80 rounded-lg border border-ink-700 bg-ink-900/90 p-4 shadow-xl backdrop-blur">
+    <div className="absolute right-6 top-6 w-80 rounded-lg border border-ink-700 bg-ink-900 p-4 shadow-xl">
       <div className="flex items-center gap-2">
         <div className="jp text-2xl font-semibold text-accent-paper">{subject.word}</div>
         <button

@@ -30,12 +30,42 @@ function GearIcon() {
   );
 }
 
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 export default function App() {
   const setGraph = useStore((s) => s.setGraph);
   const graph = useStore((s) => s.graph);
   const focused = useStore((s) => s.focused);
   const setFocused = useStore((s) => s.setFocused);
   const settings = useStore((s) => s.settings);
+  const updateSettings = useStore((s) => s.updateSettings);
+
+  // Sync theme class to <html> so CSS variables flip.
+  useEffect(() => {
+    document.documentElement.classList.toggle("light", settings.theme === "light");
+  }, [settings.theme]);
 
   const [infoOpen, setInfoOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -111,13 +141,21 @@ export default function App() {
       <SearchOverlay blocked={infoOpen || settingsOpen} />
       <DetailsPanel />
 
-      {/* Info / Settings buttons — bottom-right */}
+      {/* Info / Settings / Theme buttons — bottom-right */}
       <div className="absolute bottom-6 right-6 flex gap-2">
+        <button
+          type="button"
+          aria-label={settings.theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          onClick={() => updateSettings({ theme: settings.theme === "light" ? "dark" : "light" })}
+          className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+        >
+          {settings.theme === "light" ? <MoonIcon /> : <SunIcon />}
+        </button>
         <button
           type="button"
           aria-label="Settings"
           onClick={() => { setSettingsOpen(true); setInfoOpen(false); }}
-          className="rounded-md border border-ink-700 bg-ink-900/80 p-2 text-ink-400 backdrop-blur transition-colors hover:border-ink-500 hover:text-ink-100"
+          className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
         >
           <GearIcon />
         </button>
@@ -125,7 +163,7 @@ export default function App() {
           type="button"
           aria-label="About"
           onClick={() => { setInfoOpen(true); setSettingsOpen(false); }}
-          className="rounded-md border border-ink-700 bg-ink-900/80 p-2 text-ink-400 backdrop-blur transition-colors hover:border-ink-500 hover:text-ink-100"
+          className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
         >
           <InfoIcon />
         </button>
