@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "./store";
 import Graph from "./components/Graph";
 import DetailsPanel from "./components/DetailsPanel";
@@ -48,6 +48,34 @@ export default function App() {
       .then((data: GraphData) => setGraph(data))
       .catch((err) => console.error("Failed to load graph.json:", err));
   }, [setGraph]);
+
+  // Handle hash changes in the same tab (e.g. user edits URL bar and presses Enter).
+  useEffect(() => {
+    const onHashChange = () => {
+      const word = new URLSearchParams(window.location.hash.slice(1)).get("word") ?? "";
+      const { graph, setFocused } = useStore.getState();
+      if (!graph) return;
+      if (word) {
+        const node = graph.nodes.find((n) => n.word === word);
+        if (node) setFocused(node);
+      } else {
+        setFocused(null);
+      }
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  // Only strip the hash when exiting focus, not on initial mount with focused=null.
+  const hadFocused = useRef(false);
+  useEffect(() => {
+    if (focused) {
+      hadFocused.current = true;
+      history.replaceState(null, "", "#word=" + encodeURIComponent(focused.word));
+    } else if (hadFocused.current) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, [focused]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
