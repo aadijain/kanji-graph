@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { KANJI_RE } from "../lib/constants";
 
@@ -25,6 +26,29 @@ export default function FocusOverlay() {
   const hoveredReading = useStore((s) => s.hoveredReading);
   const setHoveredReading = useStore((s) => s.setHoveredReading);
   const transitioning = useStore((s) => s.transitioning);
+  const wordRef = useRef<HTMLDivElement>(null);
+
+  // Anchor the word block to the focused node's live screen position.
+  // Graph.tsx publishes a getter via the store; we update transform each frame
+  // so the overlay rides the node during the camera+radial tween (and stays
+  // glued if pan/zoom is later unlocked while focused).
+  useEffect(() => {
+    if (!focused) return;
+    let raf = 0;
+    const tick = () => {
+      const el = wordRef.current;
+      const get = useStore.getState().focusScreenPosGetter;
+      const p = get?.();
+      if (el && p) {
+        // -50% centers the block on the node; the -96px lift mirrors the
+        // previous -translate-y-24 so the word floats above the dot.
+        el.style.transform = `translate(${p.x}px, ${p.y - 96}px) translate(-50%, -50%)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [focused]);
 
   if (!focused) return null;
 
@@ -32,12 +56,12 @@ export default function FocusOverlay() {
 
   return (
     <div
-      className={`pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+      className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${
         transitioning ? "opacity-0" : "opacity-100"
       }`}
     >
       <BackEdge onClick={() => setFocused(null)} />
-      <div className="pointer-events-auto -translate-y-24 text-center">
+      <div ref={wordRef} className="pointer-events-auto absolute left-0 top-0 text-center">
         <div className="jp flex justify-center text-6xl font-medium leading-none">
           {chars.map((ch, i) => {
             const isKanji = KANJI_RE.test(ch);

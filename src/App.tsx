@@ -71,13 +71,26 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/graph.json")
+    // Capture initial #word=... hash before any graph is loaded; Graph.tsx will
+    // apply it once node positions are available.
+    const initialWord = new URLSearchParams(window.location.hash.slice(1)).get("word") ?? "";
+    if (initialWord) useStore.getState().setPendingFocusWord(initialWord);
+
+    const ac = new AbortController();
+    fetch("/graph.json", { signal: ac.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`graph.json: ${r.status}`);
         return r.json();
       })
-      .then((data: GraphData) => setGraph(data))
-      .catch((err) => console.error("Failed to load graph.json:", err));
+      .then((data: GraphData) => {
+        if (useStore.getState().graph) return;
+        setGraph(data);
+      })
+      .catch((err) => {
+        if (err?.name === "AbortError") return;
+        console.error("Failed to load graph.json:", err);
+      });
+    return () => ac.abort();
   }, [setGraph]);
 
   // Handle hash changes in the same tab (e.g. user edits URL bar and presses Enter).

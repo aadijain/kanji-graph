@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
 import { useStore } from "../store";
 import { endpointId, type Edge, type WordNode } from "../types";
@@ -90,6 +90,59 @@ export default function Graph() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const cancelTweenRef = useRef<(() => void) | null>(null);
   const cachedPositionsRef = useRef<Map<string, XY>>(new Map());
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState<{ w: number; h: number }>(() => ({
+    w: typeof window === "undefined" ? 0 : window.innerWidth,
+    h: typeof window === "undefined" ? 0 : window.innerHeight,
+  }));
+
+  // Track wrapper size + devicePixelRatio. ForceGraph2D's internal ResizeSensor
+  // doesn't fire on browser-zoom changes (DPR shifts but layout dims don't), so
+  // the canvas backing store stays at the old DPR and points get drawn at the
+  // wrong coords. We watch DPR via matchMedia and nudge the dims by 1px to
+  // force ForceGraph2D to re-allocate the canvas at the new DPR.
+  useEffect(() => {
+    const update = () => {
+      const el = wrapperRef.current;
+      if (!el) return;
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      setDims((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    if (wrapperRef.current) ro.observe(wrapperRef.current);
+
+    let mql: MediaQueryList | null = null;
+    let onDprChange: (() => void) | null = null;
+    const watchDpr = () => {
+      mql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      onDprChange = () => {
+        mql?.removeEventListener("change", onDprChange!);
+        const el = wrapperRef.current;
+        if (el) {
+          const w = el.clientWidth;
+          const h = el.clientHeight;
+          // Nudge then restore — forces ForceGraph2D to re-measure the canvas.
+          setDims({ w: w - 1, h });
+          requestAnimationFrame(() => {
+            setDims({ w, h });
+            requestAnimationFrame(() => {
+              (fgRef.current as unknown as { refresh?: () => void } | undefined)?.refresh?.();
+            });
+          });
+        }
+        watchDpr();
+      };
+      mql.addEventListener("change", onDprChange);
+    };
+    watchDpr();
+
+    return () => {
+      ro.disconnect();
+      if (mql && onDprChange) mql.removeEventListener("change", onDprChange);
+    };
+  }, []);
 
   // Repaint canvas when theme changes. The simulation's RAF loop may have
   // stopped, leaving the canvas frozen at the old background colour.
@@ -297,6 +350,58 @@ export default function Graph() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focused?.id]);
 
+  // Publish a getter so FocusOverlay can anchor to the focused node's
+  // live canvas position each frame. Graph.tsx owns fgRef and the live data
+  // node objects; FocusOverlay reads via the store.
+  useEffect(() => {
+    type Conv = (x: number, y: number) => { x: number; y: number } | undefined;
+    const getter = () => {
+      const fg = fgRef.current;
+      const f = useStore.getState().focused;
+      if (!fg || !f) return null;
+      const node = (data.nodes as WordNode[]).find((n) => n.id === f.id);
+      if (!node || node.x == null || node.y == null) return null;
+      const conv = (fg as unknown as { graph2ScreenCoords?: Conv }).graph2ScreenCoords;
+      if (!conv) return null;
+      const p = conv(node.x, node.y);
+      return p ? { x: p.x, y: p.y } : null;
+    };
+    useStore.getState().setFocusScreenPosGetter(getter);
+    return () => useStore.getState().setFocusScreenPosGetter(null);
+  }, [data]);
+
+  // Deep-link focus on page load. App.tsx captures the initial #word=
+  // hash into pendingFocusWord. We only apply it when the layout is settled:
+  //   - warm cache: data.nodes already have x/y from localStorage → fire from
+  //     the [data] effect immediately, before the simulation perturbs them.
+  //   - cold load: wait for onEngineStop so neighbor positions are settled
+  //     before the radial tween kicks in.
+  // (Earlier we tried onEngineTick + a non-zero threshold; that fired on
+  // tick 1 when nodes had only their phyllotaxis seed positions, so the
+  // radial tween started from a stale layout — neighbors looked like they
+  // never moved.)
+  const tryApplyPendingFocus = () => {
+    const pending = useStore.getState().pendingFocusWord;
+    if (!pending) return;
+    const nodes = data.nodes as WordNode[];
+    const node = nodes.find((n) => n.word === pending);
+    if (!node) {
+      useStore.getState().setPendingFocusWord(null);
+      return;
+    }
+    // Require every node to have a valid position; otherwise the radial
+    // layout will read undefined neighbors and pile them on one angle.
+    const allReady = nodes.every((n) => n.x != null && n.y != null);
+    if (!allReady) return;
+    useStore.getState().setPendingFocusWord(null);
+    setFocused(node);
+  };
+
+  useEffect(() => {
+    tryApplyPendingFocus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
   // Resize: refit only in global view.
   useEffect(() => {
     const handle = () => {
@@ -307,12 +412,16 @@ export default function Graph() {
   }, [focused]);
 
   return (
+    <div ref={wrapperRef} className="absolute inset-0">
     <ForceGraph2D
       ref={fgRef}
+      width={dims.w}
+      height={dims.h}
       graphData={data}
       backgroundColor={COLORS.background}
       cooldownTicks={COOLDOWN_TICKS}
       onEngineStop={() => {
+        tryApplyPendingFocus();
         if (!focused) {
           saveLayout(data.nodes as WordNode[]);
           fgRef.current?.zoomToFit(ENGINE_STOP_FIT_MS, 80);
@@ -433,14 +542,14 @@ export default function Graph() {
           highlightColor,
         );
       }}
-      nodePointerAreaPaint={(node, color, ctx) => {
+      nodePointerAreaPaint={(node, color, ctx, globalScale) => {
         const n = node as WordNode;
         const isFocus = focused?.id === n.id;
         const isNeighbor = neighbors.has(n.id);
         if (focused && !isFocus && !isNeighbor) return;
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(n.x!, n.y!, 14, 0, Math.PI * 2);
+        ctx.arc(n.x!, n.y!, 24 / globalScale, 0, Math.PI * 2);
         ctx.fill();
       }}
       // ----- edges -----
@@ -488,5 +597,6 @@ export default function Graph() {
         if (other) setFocused(other);
       }}
     />
+    </div>
   );
 }
