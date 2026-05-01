@@ -8,11 +8,11 @@ import {
   type NeighborSpread,
   type NodeSize,
 } from "../lib/settings";
-import { LAYOUT_STORAGE_KEY, EDGE_TYPE_META } from "../lib/constants";
+import { LAYOUT_STORAGE_KEY, EDGE_TYPE_META, EDGE_COLOR_SWATCHES } from "../lib/constants";
 import type { EdgeType } from "../types";
 
 const EDGE_ENTRIES = (Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][]).map(
-  ([type, { label, hex }]) => ({ type, label, color: hex }),
+  ([type, { label }]) => ({ type, label }),
 );
 
 // ── Primitives ───────────────────────────────────────────────────────────────
@@ -162,6 +162,12 @@ export default function SettingsPanel({ onClose }: Props) {
     });
   }
 
+  function setEdgeColor(type: EdgeType, hex: string) {
+    updateSettings({
+      edgeColors: { ...settings.edgeColors, [type]: hex },
+    });
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70"
@@ -191,19 +197,38 @@ export default function SettingsPanel({ onClose }: Props) {
 
           {/* Connection types */}
           <Section title="Connection types">
-            {EDGE_ENTRIES.map(({ type, label, color }) => (
-              <label key={type} className="flex cursor-pointer items-center gap-3">
-                <span
-                  className="inline-block h-px w-5 flex-shrink-0"
-                  style={{ background: color }}
-                />
-                <span className="flex-1 text-sm text-ink-100">{label}</span>
-                <Toggle
-                  checked={settings.edgeVisibility[type]}
-                  onChange={() => toggleEdge(type)}
-                />
-              </label>
-            ))}
+            {EDGE_ENTRIES.map(({ type, label }) => {
+              const activeColor = settings.edgeColors[type];
+              return (
+                <div key={type} className="flex items-center gap-3">
+                  <span
+                    className="inline-block h-px w-5 flex-shrink-0"
+                    style={{ background: activeColor }}
+                  />
+                  <span className="flex-1 text-sm text-ink-100">{label}</span>
+                  <div className="flex gap-1">
+                    {EDGE_COLOR_SWATCHES.map(({ hex }) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setEdgeColor(type, hex)}
+                        aria-label={hex}
+                        className={`h-3.5 w-3.5 flex-shrink-0 rounded-full transition-opacity ${
+                          activeColor === hex
+                            ? "ring-1 ring-ink-300 ring-offset-1 ring-offset-ink-900"
+                            : "opacity-60 hover:opacity-100"
+                        }`}
+                        style={{ background: hex }}
+                      />
+                    ))}
+                  </div>
+                  <Toggle
+                    checked={settings.edgeVisibility[type]}
+                    onChange={() => toggleEdge(type)}
+                  />
+                </div>
+              );
+            })}
           </Section>
 
           {/* Audio */}

@@ -1,3 +1,6 @@
+import { useStore } from "../store";
+import { hexToRgba } from "../lib/constants";
+
 interface Props {
   onClose: () => void;
 }
@@ -17,10 +20,10 @@ const FOCUS_MODE = [
   ["Left edge / Esc", "Return to graph view"],
 ] as const;
 
-const EDGE_TYPES = [
-  { color: "rgba(212, 168, 87, 0.9)", label: "shared kanji", desc: "both words contain the same kanji character" },
-  { color: "rgba(168, 128, 212, 0.9)", label: "similar kanji", desc: "words contain visually confusable kanji pairs" },
-  { color: "rgba(122, 168, 217, 0.9)", label: "same reading", desc: "homophones — identical hiragana reading" },
+const EDGE_TYPE_DESCS = [
+  { type: "shared-kanji"  as const, label: "shared kanji",  desc: "both words contain the same kanji character" },
+  { type: "similar-kanji" as const, label: "similar kanji", desc: "words contain visually confusable kanji pairs" },
+  { type: "same-reading"  as const, label: "same reading",  desc: "homophones — identical hiragana reading" },
 ];
 
 function InteractionTable({ rows }: { rows: readonly (readonly [string, string])[] }) {
@@ -37,6 +40,7 @@ function InteractionTable({ rows }: { rows: readonly (readonly [string, string])
 }
 
 export default function InfoModal({ onClose }: Props) {
+  const edgeColors = useStore((s) => s.settings.edgeColors);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70"
@@ -94,11 +98,11 @@ export default function InfoModal({ onClose }: Props) {
         <div className="mt-4">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">Edge types</div>
           <div className="mt-1.5 space-y-2">
-            {EDGE_TYPES.map((e) => (
+            {EDGE_TYPE_DESCS.map((e) => (
               <div key={e.label} className="flex items-start gap-3">
                 <span
                   className="mt-[5px] inline-block h-px w-5 shrink-0"
-                  style={{ background: e.color }}
+                  style={{ background: hexToRgba(edgeColors[e.type], 0.9) }}
                 />
                 <div>
                   <div className="text-sm text-ink-100">{e.label}</div>

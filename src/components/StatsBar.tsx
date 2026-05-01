@@ -5,6 +5,7 @@ import { EDGE_TYPE_META } from "../lib/constants";
 
 export default function StatsBar() {
   const graph = useStore((s) => s.graph);
+  const edgeColors = useStore((s) => s.settings.edgeColors);
   const [expanded, setExpanded] = useState(false);
   const byType = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -32,7 +33,7 @@ export default function StatsBar() {
             {(["shared-kanji", "similar-kanji", "same-reading"] as const).map((t, i) => (
               <span key={t}>
                 {i > 0 && <span className="text-ink-600"> · </span>}
-                <span style={{ color: EDGE_TYPE_META[t].hex }}>{byType[t] ?? 0}</span>
+                <span style={{ color: edgeColors[t] }}>{byType[t] ?? 0}</span>
                 {" "}{EDGE_TYPE_META[t].label}
               </span>
             ))}

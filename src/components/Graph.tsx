@@ -16,6 +16,7 @@ import {
   NODE_COLORS,
   LIGHT_NODE_COLORS,
   EDGE_TYPE_META,
+  hexToRgba,
   FONT_FAMILY,
   COOLDOWN_TICKS,
   D3_ALPHA_DECAY,
@@ -465,10 +466,10 @@ export default function Graph() {
           const dimByKanji = !!hoveredKanji && !via.includes(hoveredKanji);
           const dimByReading = hoveredReading && !isSameReading;
           const dotColor = hoveredKanji
-            ? EDGE_TYPE_META[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"].hex
+            ? settings.edgeColors[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"]
             : hoveredReading
-              ? EDGE_TYPE_META["same-reading"].hex
-              : EDGE_TYPE_META[nd?.primaryType ?? "shared-kanji"].hex;
+              ? settings.edgeColors["same-reading"]
+              : settings.edgeColors[nd?.primaryType ?? "shared-kanji"];
           ctx.fillStyle = (dimByKanji || dimByReading) ? COLORS.muted : dotColor;
         } else if (isHovered) {
           ctx.fillStyle = COLORS.bridgeKanjiHi;
@@ -508,7 +509,7 @@ export default function Graph() {
               baseColor = COLORS.highlight;
               weight = 600;
               highlightSet = new Set([hoveredKanji]);
-              highlightColor = EDGE_TYPE_META[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"].hex;
+              highlightColor = settings.edgeColors[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"];
             } else {
               baseColor = COLORS.muted;
             }
@@ -518,7 +519,7 @@ export default function Graph() {
           } else {
             baseColor = COLORS.neighbor;
             highlightSet = new Set(via);
-            highlightColor = EDGE_TYPE_META[nd?.primaryType ?? "shared-kanji"].hex;
+            highlightColor = settings.edgeColors[nd?.primaryType ?? "shared-kanji"];
           }
         } else if (isHoverNeighbor) {
           baseColor = COLORS.neighbor;
@@ -554,19 +555,19 @@ export default function Graph() {
         if (!edgeVisibility[l.type]) return COLORS.edgeHidden;
         const s = endpointId(l.source);
         const t = endpointId(l.target);
-        const palette = EDGE_TYPE_META[l.type];
+        const hex = settings.edgeColors[l.type] ?? EDGE_TYPE_META[l.type].hex;
         if (focused) {
           if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
           if (hoveredKanji) {
-            if (l.type === "same-reading" || !l.via.includes(hoveredKanji)) return palette.muted;
+            if (l.type === "same-reading" || !l.via.includes(hoveredKanji)) return hexToRgba(hex, 0.18);
           }
           if (hoveredReading) {
-            if (l.type !== "same-reading") return palette.muted;
+            if (l.type !== "same-reading") return hexToRgba(hex, 0.18);
           }
-          return palette.active;
+          return hexToRgba(hex, 0.85);
         }
-        if (!hovered) return palette.ambient;
-        return s === hovered.id || t === hovered.id ? palette.active : COLORS.edgeHidden;
+        if (!hovered) return hexToRgba(hex, 0.05);
+        return s === hovered.id || t === hovered.id ? hexToRgba(hex, 0.85) : COLORS.edgeHidden;
       }}
       linkWidth={(link) => {
         const l = link as Edge;

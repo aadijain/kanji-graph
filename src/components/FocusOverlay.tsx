@@ -26,6 +26,7 @@ export default function FocusOverlay() {
   const hoveredReading = useStore((s) => s.hoveredReading);
   const setHoveredReading = useStore((s) => s.setHoveredReading);
   const transitioning = useStore((s) => s.transitioning);
+  const edgeColors = useStore((s) => s.settings.edgeColors);
   const wordRef = useRef<HTMLDivElement>(null);
 
   // Anchor the word block to the focused node's live screen position.
@@ -76,13 +77,14 @@ export default function FocusOverlay() {
                   "inline-block px-1 transition duration-150",
                   isKanji ? "cursor-pointer" : "",
                   isActive
-                    ? "scale-110 text-accent-gold"
+                    ? "scale-110"
                     : (dim || hoveredReading)
                       ? "text-ink-500"
                       : isKanji
-                        ? "text-ink-100 hover:text-accent-gold"
+                        ? "text-ink-100"
                         : "text-ink-300",
                 ].join(" ")}
+                style={isActive ? { color: edgeColors["shared-kanji"] } : undefined}
               >
                 {ch}
               </span>
@@ -90,7 +92,8 @@ export default function FocusOverlay() {
           })}
         </div>
         <div
-          className={`jp mt-3 cursor-pointer text-sm transition duration-150 ${hoveredReading ? "text-accent-sky" : "text-ink-300 hover:text-accent-sky"}`}
+          className="jp mt-3 cursor-pointer text-sm transition duration-150"
+          style={{ color: hoveredReading ? edgeColors["same-reading"] : undefined }}
           onMouseEnter={() => setHoveredReading(true)}
           onMouseLeave={() => setHoveredReading(false)}
         >

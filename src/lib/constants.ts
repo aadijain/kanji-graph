@@ -49,34 +49,31 @@ export const LIGHT_NODE_COLORS = {
   background:    "#f8f9fa",
 };
 
-// Per edge-type color palette. `hex` is used in UI chrome (legend, toggles);
-// active/muted/ambient are used in the canvas renderer.
-export const EDGE_TYPE_META: Record<
-  EdgeType,
-  { label: string; hex: string; active: string; muted: string; ambient: string }
-> = {
-  "shared-kanji": {
-    label: "shared kanji",
-    hex: "#d4a857",
-    active:  "rgba(212, 168, 87, 0.85)",
-    muted:   "rgba(212, 168, 87, 0.18)",
-    ambient: "rgba(212, 168, 87, 0.05)",
-  },
-  "similar-kanji": {
-    label: "similar kanji",
-    hex: "#a880d4",
-    active:  "rgba(168, 128, 212, 0.85)",
-    muted:   "rgba(168, 128, 212, 0.18)",
-    ambient: "rgba(168, 128, 212, 0.05)",
-  },
-  "same-reading": {
-    label: "same reading",
-    hex: "#7aa8d9",
-    active:  "rgba(122, 168, 217, 0.85)",
-    muted:   "rgba(122, 168, 217, 0.18)",
-    ambient: "rgba(122, 168, 217, 0.05)",
-  },
+// Per edge-type metadata. `hex` is the default color used in UI chrome and as
+// the canvas palette base. Canvas active/muted/ambient are computed dynamically
+// from the user's chosen color via hexToRgba, so only label + hex live here.
+export const EDGE_TYPE_META: Record<EdgeType, { label: string; hex: string }> = {
+  "shared-kanji": { label: "shared kanji", hex: "#d4a857" },
+  "similar-kanji": { label: "similar kanji", hex: "#a880d4" },
+  "same-reading":  { label: "same reading",  hex: "#7aa8d9" },
 };
+
+// Curated swatch palette for edge color selection (matches accent.* in tailwind.config.js).
+export const EDGE_COLOR_SWATCHES = [
+  { label: "gold",  hex: "#d4a857" },
+  { label: "rose",  hex: "#d97a82" },
+  { label: "sky",   hex: "#7aa8d9" },
+  { label: "moss",  hex: "#8fb37a" },
+  { label: "plum",  hex: "#a880d4" },
+] as const;
+
+// Converts a 6-digit hex color to an rgba() string.
+export function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 // ── Graph renderer ───────────────────────────────────────────────────────────
 

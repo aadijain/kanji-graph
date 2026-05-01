@@ -26,6 +26,7 @@ export default function DetailsPanel() {
   const focused = useStore((s) => s.focused);
   const graph = useStore((s) => s.graph);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
+  const edgeColors = useStore((s) => s.settings.edgeColors);
   const [playing, setPlaying] = useState(false);
 
   const subject = hovered ?? focused;
@@ -106,7 +107,7 @@ export default function DetailsPanel() {
                     dim ? "opacity-30" : "opacity-100"
                   }`}
                 >
-                  <div className="jp w-6 shrink-0 text-lg text-accent-gold">{k}</div>
+                  <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["shared-kanji"] }}>{k}</div>
                   <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-ink-100">
                     {others.length > 0 ? (
                       others.map((o) => <span key={o}>{o}</span>)
@@ -136,7 +137,7 @@ export default function DetailsPanel() {
                     dim ? "opacity-30" : "opacity-100"
                   }`}
                 >
-                  <div className="jp w-6 shrink-0 text-lg" style={{ color: "#a880d4" }}>{k}</div>
+                  <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["similar-kanji"] }}>{k}</div>
                   <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-ink-100">
                     {others.map((o) => <span key={o}>{o}</span>)}
                   </div>
@@ -153,7 +154,7 @@ export default function DetailsPanel() {
             same reading
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
-               style={{ color: "#7aa8d9" }}>
+               style={{ color: edgeColors["same-reading"] }}>
             {connections.sameReading.map((o) => <span key={o}>{o}</span>)}
           </div>
         </div>

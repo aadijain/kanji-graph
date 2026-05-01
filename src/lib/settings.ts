@@ -13,6 +13,7 @@ export interface Settings {
   localAudioEnabled: boolean;
   audioServerUrl: string;
   edgeVisibility: Record<EdgeType, boolean>;
+  edgeColors: Record<EdgeType, string>;
   animationSpeed: AnimationSpeed;
   focusZoom: FocusZoom;
   neighborSpread: NeighborSpread;
@@ -27,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   localAudioEnabled: false,
   audioServerUrl: "",
   edgeVisibility: { "shared-kanji": true, "same-reading": true, "similar-kanji": true },
+  edgeColors: { "shared-kanji": "#d4a857", "same-reading": "#7aa8d9", "similar-kanji": "#a880d4" },
   animationSpeed: "normal",
   focusZoom: "normal",
   neighborSpread: "normal",
@@ -86,6 +88,7 @@ export function loadSettings(): Settings {
         ...DEFAULT_SETTINGS,
         ...p,
         edgeVisibility: { ...DEFAULT_SETTINGS.edgeVisibility, ...p.edgeVisibility },
+        edgeColors: { ...DEFAULT_SETTINGS.edgeColors, ...p.edgeColors },
       };
     }
     // Migrate from v2: carry all preserved fields; theme defaults to "dark".
@@ -96,6 +99,7 @@ export function loadSettings(): Settings {
         ...DEFAULT_SETTINGS,
         ...v2,
         edgeVisibility: { ...DEFAULT_SETTINGS.edgeVisibility, ...v2.edgeVisibility },
+        edgeColors: { ...DEFAULT_SETTINGS.edgeColors },
         theme: "dark",
       };
     }
