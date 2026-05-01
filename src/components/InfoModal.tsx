@@ -5,7 +5,6 @@ interface Props {
 // Global view: default browsing mode, hover-driven.
 const GLOBAL_VIEW = [
   ["Hover a word", "Show its connections"],
-  ["Scroll", "Zoom in / out"],
   ["Click a word", "Enter focus mode"],
   ["Type anything", "Search by kanji, reading, or romaji"],
 ] as const;
@@ -60,9 +59,7 @@ export default function InfoModal({ onClose }: Props) {
 
         <h2 className="text-base font-semibold text-accent-paper">Kanji Graph</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-300">
-          Personal kanji connection explorer. Browse the full graph in{" "}
-          <span className="text-ink-100">global view</span>, or click any word to enter{" "}
-          <span className="text-ink-100">focus mode</span> — a zoomed-in radial layout showing that word and its neighbors.
+          Hover words to see connections. Click to enter focus mode and explore a word's neighborhood.
         </p>
 
         {/* Global view */}
@@ -96,13 +93,6 @@ export default function InfoModal({ onClose }: Props) {
           </div>
         </div>
 
-        <div className="mt-5 border-t border-ink-800 pt-4 text-[11px] text-ink-500">
-          Dictionary:{" "}
-          <span className="text-ink-300">Jitendex</span>
-          {" · "}
-          Audio:{" "}
-          <span className="text-ink-300">Yomitan audio server</span>
-        </div>
       </div>
     </div>
   );

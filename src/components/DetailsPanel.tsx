@@ -58,13 +58,7 @@ export default function DetailsPanel() {
     return { byKanji, sameReading, similarByKanji };
   }, [subject, graph]);
 
-  if (!subject) {
-    return (
-      <div className="pointer-events-none absolute right-6 top-6 max-w-xs text-right text-xs text-ink-500">
-        hover a word · click to focus
-      </div>
-    );
-  }
+  if (!subject) return null;
 
   return (
     <div className="absolute right-6 top-6 w-80 rounded-lg border border-ink-700 bg-ink-900 p-4 shadow-xl">
