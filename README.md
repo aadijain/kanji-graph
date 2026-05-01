@@ -14,8 +14,8 @@ Interactive web tool for visualizing connections between Japanese words you've l
 - **Word view** -- click a word to zoom in, reposition neighbors radially, and see per-kanji detail
 - **Search** -- type anywhere to search by kanji, kana reading, or romaji; arrow keys + Enter to jump
 - **Three edge types** -- shared kanji, same reading, visually similar kanji
-- **Pronunciation audio** -- plays via a local Yomitan audio server; falls back to browser TTS
-- **Persistent layout** -- node positions saved to localStorage so the graph persists between reloads
+- **Pronunciation audio** -- local [Yomitan audio server](https://github.com/yomidevs/local-audio-yomichan) or browser TTS
+- **Persistent layout** -- node positions saved to localStorage so that the graph persists between reloads
 - **Settings panel** -- edge type toggles, animation speed, zoom, neighbor spread, layout density, label size
 
 ## Quick start
@@ -75,7 +75,10 @@ Jitendex can also be downloaded manually from <https://jitendex.org>.
 
 ## Audio playback
 
-The app plays pronunciation via a local [Yomitan audio server](https://github.com/yomitan-org/yomitan). Configure the server URL in **Settings > Advanced > Audio server URL**, or set `VITE_AUDIO_BASE` in a `.env.local` file at the project root. The Vite proxy target can be adjusted in `vite.config.ts`.
+Audio has two modes, toggled in **Settings > Audio > Local audio server**:
+
+- **Off (default):** uses the browser's built-in Japanese TTS (`ja-JP`). Requires a Japanese language pack installed on your OS. It is noticeably lower quality than the local audio server.
+- **On:** fetches from a local [Yomitan audio server](https://github.com/yomidevs/local-audio-yomichan). The default URL template is `http://127.0.0.1:5050/?term={term}&reading={reading}`. Paste a custom template into the URL field that appears below the toggle.
 
 ## Configuration
 
@@ -83,13 +86,13 @@ Key configuration files:
 
 | What | File |
 |---|---|
-| Ports, proxy target | `vite.config.ts` |
+| Port | `vite.config.ts` |
 | App constants -- colors, localStorage keys, graph physics, audio defaults | `src/lib/constants.ts` |
 | Build pipeline constants -- dictionary paths, data file paths, output path | `scripts/constants.ts` |
 | Settings presets -- animation speeds, zoom levels, layout density values | `src/lib/settings.ts` |
 | Word list | `data/words.txt` |
 | Similar-kanji groups | `data/similar-kanji.tsv` |
-| Audio server URL (runtime override) | `.env.local` -> `VITE_AUDIO_BASE` |
+| Audio server URL template | Settings > Audio > Local audio server |
 
 ## Disclaimers
 

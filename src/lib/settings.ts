@@ -10,6 +10,7 @@ export type Theme = "dark" | "light";
 
 export interface Settings {
   audioAutoPlay: boolean;
+  localAudioEnabled: boolean;
   audioServerUrl: string;
   edgeVisibility: Record<EdgeType, boolean>;
   animationSpeed: AnimationSpeed;
@@ -22,6 +23,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   audioAutoPlay: true,
+  localAudioEnabled: false,
   audioServerUrl: "",
   edgeVisibility: { "shared-kanji": true, "same-reading": true, "similar-kanji": true },
   animationSpeed: "normal",

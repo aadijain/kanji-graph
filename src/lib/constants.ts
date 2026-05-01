@@ -10,15 +10,14 @@ export const SETTINGS_LEGACY_KEY = "kanji-graph:settings:v1";
 // ── Text / language ──────────────────────────────────────────────────────────
 
 export const KANJI_RE = /[一-鿿]/;
-export const TTS_LANG = "ja-JP";
 export const FONT_FAMILY = '"Noto Sans JP", "Hiragino Sans", sans-serif';
 
 // ── Audio ────────────────────────────────────────────────────────────────────
 
-// Default base for audio requests — routed through the Vite dev-server proxy
-// to the Yomitan audio server running on the same host as the dev server.
-// Override with VITE_AUDIO_BASE in .env.local or via Settings > Audio server URL.
-export const AUDIO_DEFAULT_BASE = "/audio";
+// Default URL template for the local Yomitan audio server.
+// {term} and {reading} are substituted at query time.
+// Override via Settings > Audio > Local audio server URL field.
+export const AUDIO_DEFAULT_URL = "http://127.0.0.1:5050/?term={term}&reading={reading}";
 
 // ── Colors ───────────────────────────────────────────────────────────────────
 

@@ -189,6 +189,22 @@ export default function SettingsPanel({ onClose }: Props) {
                 onChange={() => updateSettings({ audioAutoPlay: !settings.audioAutoPlay })}
               />
             </Row>
+            <Row label="Local audio server">
+              <Toggle
+                checked={settings.localAudioEnabled}
+                onChange={() => updateSettings({ localAudioEnabled: !settings.localAudioEnabled })}
+              />
+            </Row>
+            {settings.localAudioEnabled && (
+              <input
+                type="text"
+                value={settings.audioServerUrl}
+                onChange={(e) => updateSettings({ audioServerUrl: e.target.value })}
+                placeholder="http://127.0.0.1:5050/?term={term}&reading={reading}"
+                spellCheck={false}
+                className="w-full rounded border border-ink-700 bg-ink-800 px-2.5 py-1.5 text-xs text-ink-100 placeholder:text-ink-700 focus:border-ink-500 focus:outline-none"
+              />
+            )}
           </div>
 
           {/* Advanced toggle */}
@@ -240,19 +256,6 @@ export default function SettingsPanel({ onClose }: Props) {
                 </Row>
               </div>
 
-              {/* Audio server URL — TODO: confusing for end users; needs cleanup.
-                  See CLAUDE.md backlog for redesign options (port number, auto-detect, etc.). */}
-              <div className="space-y-1.5">
-                <div className="text-[11px] uppercase tracking-wide text-ink-500">Audio server URL</div>
-                <input
-                  type="text"
-                  value={settings.audioServerUrl}
-                  onChange={(e) => updateSettings({ audioServerUrl: e.target.value })}
-                  placeholder="default: /audio proxy → :5050"
-                  spellCheck={false}
-                  className="w-full rounded border border-ink-700 bg-ink-800 px-2.5 py-1.5 text-xs text-ink-100 placeholder:text-ink-700 focus:border-ink-500 focus:outline-none"
-                />
-              </div>
             </div>
           )}
 

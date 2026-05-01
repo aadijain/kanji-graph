@@ -1,20 +1,17 @@
 import { useStore } from "../store";
-import { AUDIO_DEFAULT_BASE, TTS_LANG } from "./constants";
+import { AUDIO_DEFAULT_URL } from "./constants";
 
-// Read the effective audio server base at call time so runtime settings override
-// the build-time VITE_AUDIO_BASE without a page reload.
-function getBase(): string {
+function getTemplate(): string {
   const override = useStore.getState().settings.audioServerUrl.trim();
-  if (override) return override.replace(/\/+$/, "");
-  return (import.meta.env.VITE_AUDIO_BASE as string | undefined)?.replace(/\/+$/, "") ?? AUDIO_DEFAULT_BASE;
+  return override || AUDIO_DEFAULT_URL;
 }
 
 let currentAudio: HTMLAudioElement | null = null;
 
-function yomitanUrl(word: string, reading: string, base: string): string {
-  const t = encodeURIComponent(word);
-  const r = encodeURIComponent(reading);
-  return `${base}/?term=${t}&reading=${r}`;
+function buildLookupUrl(word: string, reading: string, template: string): string {
+  return template
+    .replace("{term}", encodeURIComponent(word))
+    .replace("{reading}", encodeURIComponent(reading));
 }
 
 interface AudioManifest {
@@ -24,18 +21,17 @@ interface AudioManifest {
 
 // Yomitan-style audio servers return either direct audio bytes or a JSON
 // manifest listing source URLs. Resolve to a direct, browser-reachable URL.
-async function resolveAudioUrl(url: string, base: string): Promise<string> {
-  const res = await fetch(url);
+async function resolveAudioUrl(lookupUrl: string): Promise<string> {
+  const res = await fetch(lookupUrl);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const ct = res.headers.get("content-type") ?? "";
-  if (!ct.includes("json")) return url; // already audio
+  if (!ct.includes("json")) return lookupUrl; // already audio
   const manifest = (await res.json()) as AudioManifest;
   const first = manifest.audioSources?.[0]?.url;
   if (!first) throw new Error("no audio sources in manifest");
-  // Sources point at the audio server's own origin (e.g. localhost:5050).
-  // Rewrite to base so the browser reaches them via the same path
-  // (Vite proxy in dev, configured base in prod).
-  return first.replace(/^https?:\/\/[^/]+/, base);
+  // Rewrite manifest source origin to match the configured server host.
+  const origin = new URL(lookupUrl).origin;
+  return first.replace(/^https?:\/\/[^/]+/, origin);
 }
 
 function stopAll() {
@@ -92,7 +88,7 @@ function speakTTS(text: string): Promise<void> {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve();
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = TTS_LANG;
+    u.lang = "ja-JP";
     u.onend = () => resolve();
     u.onerror = () => resolve();
     window.speechSynthesis.speak(u);
@@ -100,22 +96,19 @@ function speakTTS(text: string): Promise<void> {
 }
 
 /**
- * Play pronunciation for a word. Tries the local Yomitan audio server first
- * (recorded audio); falls back to the browser's Japanese TTS. Cancels any
- * playback already in progress.
+ * Play pronunciation for a word. When local audio is enabled, fetches from the
+ * configured Yomitan audio server and does not fall back to TTS. When disabled,
+ * uses browser TTS directly.
  */
 export async function playPronunciation(word: string, reading: string): Promise<void> {
   stopAll();
-  const base = getBase();
-  const lookupUrl = yomitanUrl(word, reading, base);
-  try {
-    const audioUrl = await resolveAudioUrl(lookupUrl, base);
-    await playUrl(audioUrl);
+  const { localAudioEnabled } = useStore.getState().settings;
+  if (!localAudioEnabled) {
+    await speakTTS(reading || word);
     return;
-  } catch (err) {
-    if (import.meta.env.DEV) {
-      console.warn(`[audio] ${lookupUrl} failed, falling back to TTS:`, err);
-    }
   }
-  await speakTTS(reading || word);
+  const template = getTemplate();
+  const lookupUrl = buildLookupUrl(word, reading, template);
+  const audioUrl = await resolveAudioUrl(lookupUrl);
+  await playUrl(audioUrl);
 }
