@@ -401,7 +401,7 @@ export default function Graph() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  // Resize: refit only in global view.
+  // Resize: refit only in graph view.
   useEffect(() => {
     const handle = () => {
       if (!focused) fgRef.current?.zoomToFit(RESIZE_FIT_MS, 80);

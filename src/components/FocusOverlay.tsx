@@ -7,7 +7,7 @@ function BackEdge({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      aria-label="Return to global view (Esc)"
+      aria-label="Return to graph view (Esc)"
       className="pointer-events-auto group absolute inset-y-0 left-0 w-24 cursor-pointer"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-ink-800/20 to-transparent opacity-100 transition-opacity duration-150 group-hover:from-ink-700/60" />

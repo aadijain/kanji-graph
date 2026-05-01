@@ -2,19 +2,19 @@ interface Props {
   onClose: () => void;
 }
 
-// Global view: default browsing mode, hover-driven.
+// Graph view: default browsing mode, hover-driven.
 const GLOBAL_VIEW = [
   ["Hover a word", "Show its connections"],
-  ["Click a word", "Enter focus mode"],
+  ["Click a word", "Enter word view"],
   ["Type anything", "Search by kanji, reading, or romaji"],
 ] as const;
 
-// Focus mode: click-driven, one word at a time.
+// Word view: click-driven, one word at a time.
 const FOCUS_MODE = [
   ["Click a neighbor or edge", "Navigate to that word"],
   ["Hover a kanji", "Filter connections by that kanji"],
   ["Hover the reading", "Filter to same-reading connections"],
-  ["Left edge / Esc", "Return to global view"],
+  ["Left edge / Esc", "Return to graph view"],
 ] as const;
 
 const EDGE_TYPES = [
@@ -59,18 +59,18 @@ export default function InfoModal({ onClose }: Props) {
 
         <h2 className="text-base font-semibold text-accent-paper">Kanji Graph</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-300">
-          Hover words to see connections. Click to enter focus mode and explore a word's neighborhood.
+          Hover words to see connections. Click to enter word view and explore a word's neighborhood.
         </p>
 
-        {/* Global view */}
+        {/* Graph view */}
         <div className="mt-5">
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">Global view</div>
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">Graph view</div>
           <InteractionTable rows={GLOBAL_VIEW} />
         </div>
 
-        {/* Focus mode */}
+        {/* Word view */}
         <div className="mt-4">
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">Focus mode</div>
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">Word view</div>
           <InteractionTable rows={FOCUS_MODE} />
         </div>
 
