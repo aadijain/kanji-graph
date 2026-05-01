@@ -29,7 +29,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
       }`}
     >
       <span
-        className={`absolute top-0.5 h-4 w-4 rounded-full bg-ink-950 shadow transition-transform ${
+        className={`absolute left-0 top-0.5 h-4 w-4 rounded-full bg-ink-950 shadow transition-transform ${
           checked ? "translate-x-[18px]" : "translate-x-0.5"
         }`}
       />
@@ -134,7 +134,7 @@ export default function SettingsPanel({ onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="relative mx-4 flex max-h-[80vh] w-full max-w-sm flex-col rounded-xl border border-ink-700 bg-ink-900 shadow-2xl"
+        className="relative mx-4 flex max-h-[80vh] w-full max-w-md flex-col rounded-xl border border-ink-700 bg-ink-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

@@ -42,7 +42,7 @@ body,
 body {
   background: rgb(var(--ink-950));
   color: rgb(var(--ink-100));
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Geist Mono", ui-monospace, monospace;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }

@@ -49,7 +49,7 @@ export const FOCUS_ZOOM_VALUES: Record<FocusZoom, number> = {
 export const NEIGHBOR_RADIUS_VALUES: Record<NeighborSpread, number> = {
   tight: 55,
   normal: 90,
-  wide: 140,
+  wide: 120,
 };
 
 export const LAYOUT_DENSITY_VALUES: Record<

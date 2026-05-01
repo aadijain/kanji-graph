@@ -28,7 +28,7 @@ function InteractionTable({ rows }: { rows: readonly (readonly [string, string])
     <div className="mt-1.5 space-y-1.5">
       {rows.map(([action, result]) => (
         <div key={action} className="flex gap-4 text-sm">
-          <span className="w-36 shrink-0 text-ink-100">{action}</span>
+          <span className="w-44 shrink-0 text-ink-100">{action}</span>
           <span className="text-ink-500">{result}</span>
         </div>
       ))}
@@ -43,7 +43,7 @@ export default function InfoModal({ onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="relative mx-4 w-full max-w-md rounded-xl border border-ink-700 bg-ink-900 p-6 shadow-2xl"
+        className="relative mx-4 w-full max-w-xl rounded-xl border border-ink-700 bg-ink-900 p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button

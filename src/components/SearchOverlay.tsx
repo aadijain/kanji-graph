@@ -109,7 +109,7 @@ export default function SearchOverlay({ blocked = false }: { blocked?: boolean }
       onClick={() => setQuery("")}
     >
       <div
-        className="pointer-events-auto h-fit w-72 rounded-xl border border-ink-700 bg-ink-950 shadow-2xl"
+        className="pointer-events-auto h-fit w-96 rounded-xl border border-ink-700 bg-ink-950 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Query display */}
