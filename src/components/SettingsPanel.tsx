@@ -66,12 +66,47 @@ function Steps<T extends string>({
   );
 }
 
-// Label-left, control-right row. All labels use the same style for consistency.
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="flex-shrink-0 text-sm text-ink-100">{label}</span>
       {children}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 text-[11px] text-ink-500 transition-colors hover:text-ink-300"
+      >
+        <svg
+          viewBox="0 0 12 12"
+          className={`h-2.5 w-2.5 flex-shrink-0 transition-transform ${open ? "rotate-90" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 2l4 4-4 4" />
+        </svg>
+        <span className="uppercase tracking-wide">{title}</span>
+        <span className="flex-1 border-t border-ink-800" />
+      </button>
+      {open && <div className="mt-2.5 space-y-2.5">{children}</div>}
     </div>
   );
 }
@@ -120,7 +155,6 @@ interface Props {
 export default function SettingsPanel({ onClose }: Props) {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   function toggleEdge(type: EdgeType) {
     updateSettings({
@@ -155,34 +189,25 @@ export default function SettingsPanel({ onClose }: Props) {
         {/* Body */}
         <div className="overflow-y-auto px-5 py-4 space-y-4">
 
-          {/* Connection types
-              TODO: add color selection per type using pre-selected color palettes
-              (not a color wheel — a small set of curated color options per edge type,
-              matching the accent.* colors in tailwind.config.js). */}
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-wide text-ink-500">
-              Connection types
-            </div>
-            <div className="space-y-2">
-              {EDGE_ENTRIES.map(({ type, label, color }) => (
-                <label key={type} className="flex cursor-pointer items-center gap-3">
-                  <span
-                    className="inline-block h-px w-5 flex-shrink-0"
-                    style={{ background: color }}
-                  />
-                  <span className="flex-1 text-sm text-ink-100">{label}</span>
-                  <Toggle
-                    checked={settings.edgeVisibility[type]}
-                    onChange={() => toggleEdge(type)}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
+          {/* Connection types */}
+          <Section title="Connection types">
+            {EDGE_ENTRIES.map(({ type, label, color }) => (
+              <label key={type} className="flex cursor-pointer items-center gap-3">
+                <span
+                  className="inline-block h-px w-5 flex-shrink-0"
+                  style={{ background: color }}
+                />
+                <span className="flex-1 text-sm text-ink-100">{label}</span>
+                <Toggle
+                  checked={settings.edgeVisibility[type]}
+                  onChange={() => toggleEdge(type)}
+                />
+              </label>
+            ))}
+          </Section>
 
-          {/* Primary */}
-          <div className="space-y-2.5">
-            <div className="text-[11px] uppercase tracking-wide text-ink-500">Audio</div>
+          {/* Audio */}
+          <Section title="Audio">
             <Row label="Auto-play on focus">
               <Toggle
                 checked={settings.audioAutoPlay}
@@ -205,70 +230,40 @@ export default function SettingsPanel({ onClose }: Props) {
                 className="w-full rounded border border-ink-700 bg-ink-800 px-2.5 py-1.5 text-xs text-ink-100 placeholder:text-ink-700 focus:border-ink-500 focus:outline-none"
               />
             )}
-          </div>
+          </Section>
 
           {/* Clipboard */}
-          <div className="space-y-2.5">
-            <div className="text-[11px] uppercase tracking-wide text-ink-500">Clipboard</div>
+          <Section title="Clipboard">
             <Row label="Follow clipboard">
               <Toggle
                 checked={settings.clipboardSyncEnabled}
                 onChange={() => updateSettings({ clipboardSyncEnabled: !settings.clipboardSyncEnabled })}
               />
             </Row>
-          </div>
+          </Section>
 
-          {/* Advanced toggle */}
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen((o) => !o)}
-            className="flex w-full items-center gap-2 text-[11px] text-ink-600 transition-colors hover:text-ink-400"
-          >
-            <svg
-              viewBox="0 0 12 12"
-              className={`h-2.5 w-2.5 flex-shrink-0 transition-transform ${advancedOpen ? "rotate-90" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 2l4 4-4 4" />
-            </svg>
-            <span>Advanced</span>
-            <span className="flex-1 border-t border-ink-800" />
-          </button>
+          {/* Focus */}
+          <Section title="Focus" defaultOpen={false}>
+            <Row label="Animation">
+              <Steps options={SPEED_OPTIONS} value={settings.animationSpeed} onChange={(v) => updateSettings({ animationSpeed: v })} />
+            </Row>
+            <Row label="Zoom">
+              <Steps options={ZOOM_OPTIONS} value={settings.focusZoom} onChange={(v) => updateSettings({ focusZoom: v })} />
+            </Row>
+            <Row label="Neighbor spread">
+              <Steps options={SPREAD_OPTIONS} value={settings.neighborSpread} onChange={(v) => updateSettings({ neighborSpread: v })} />
+            </Row>
+          </Section>
 
-          {/* Advanced body */}
-          {advancedOpen && (
-            <div className="space-y-4">
-              {/* Focus */}
-              <div className="space-y-2.5">
-                <div className="text-[11px] uppercase tracking-wide text-ink-500">Focus</div>
-                <Row label="Animation">
-                  <Steps options={SPEED_OPTIONS} value={settings.animationSpeed} onChange={(v) => updateSettings({ animationSpeed: v })} />
-                </Row>
-                <Row label="Zoom">
-                  <Steps options={ZOOM_OPTIONS} value={settings.focusZoom} onChange={(v) => updateSettings({ focusZoom: v })} />
-                </Row>
-                <Row label="Neighbor spread">
-                  <Steps options={SPREAD_OPTIONS} value={settings.neighborSpread} onChange={(v) => updateSettings({ neighborSpread: v })} />
-                </Row>
-              </div>
-
-              {/* Graph */}
-              <div className="space-y-2.5">
-                <div className="text-[11px] uppercase tracking-wide text-ink-500">Graph</div>
-                <Row label="Layout">
-                  <Steps options={DENSITY_OPTIONS} value={settings.layoutDensity} onChange={(v) => updateSettings({ layoutDensity: v })} />
-                </Row>
-                <Row label="Label size">
-                  <Steps options={LABEL_SIZE_OPTIONS} value={settings.nodeSize} onChange={(v) => updateSettings({ nodeSize: v })} />
-                </Row>
-              </div>
-
-            </div>
-          )}
+          {/* Graph */}
+          <Section title="Graph" defaultOpen={false}>
+            <Row label="Layout">
+              <Steps options={DENSITY_OPTIONS} value={settings.layoutDensity} onChange={(v) => updateSettings({ layoutDensity: v })} />
+            </Row>
+            <Row label="Label size">
+              <Steps options={LABEL_SIZE_OPTIONS} value={settings.nodeSize} onChange={(v) => updateSettings({ nodeSize: v })} />
+            </Row>
+          </Section>
 
           {/* Footer actions */}
           <div className="flex flex-wrap gap-2 border-t border-ink-800 pt-4">

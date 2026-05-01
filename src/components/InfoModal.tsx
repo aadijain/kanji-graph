@@ -68,11 +68,15 @@ export default function InfoModal({ onClose }: Props) {
           <InteractionTable rows={GLOBAL_VIEW} />
         </div>
 
+        <hr className="mt-4 border-ink-800" />
+
         {/* Word view */}
         <div className="mt-4">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">Word view</div>
           <InteractionTable rows={FOCUS_MODE} />
         </div>
+
+        <hr className="mt-4 border-ink-800" />
 
         {/* Clipboard sync */}
         <div className="mt-4">
@@ -83,6 +87,8 @@ export default function InfoModal({ onClose }: Props) {
             focus the copied word, or switch tabs for automatic focus on HTTPS.
           </p>
         </div>
+
+        <hr className="mt-4 border-ink-800" />
 
         {/* Edge types */}
         <div className="mt-4">
