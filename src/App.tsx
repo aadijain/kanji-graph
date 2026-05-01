@@ -11,6 +11,29 @@ import SettingsPanel from "./components/SettingsPanel";
 import { playPronunciation } from "./lib/audio";
 import type { GraphData } from "./types";
 
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="group relative">
+      {children}
+      <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-ink-800 px-2 py-1 text-xs text-ink-200 opacity-0 transition-opacity group-hover:opacity-100">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function ShuffleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="16 3 21 3 21 8" />
+      <line x1="4" y1="20" x2="21" y2="3" />
+      <polyline points="21 16 21 21 16 21" />
+      <line x1="15" y1="15" x2="21" y2="21" />
+      <line x1="4" y1="4" x2="9" y2="9" />
+    </svg>
+  );
+}
+
 function InfoIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -156,30 +179,51 @@ export default function App() {
 
       {/* Info / Settings / Theme buttons — bottom-right */}
       <div className="absolute bottom-6 right-6 flex gap-2">
-        <button
-          type="button"
-          aria-label={settings.theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-          onClick={() => updateSettings({ theme: settings.theme === "light" ? "dark" : "light" })}
-          className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
-        >
-          {settings.theme === "light" ? <MoonIcon /> : <SunIcon />}
-        </button>
-        <button
-          type="button"
-          aria-label="Settings"
-          onClick={() => { setSettingsOpen(true); setInfoOpen(false); }}
-          className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
-        >
-          <GearIcon />
-        </button>
-        <button
-          type="button"
-          aria-label="About"
-          onClick={() => { setInfoOpen(true); setSettingsOpen(false); }}
-          className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
-        >
-          <InfoIcon />
-        </button>
+        {graph && (
+          <Tooltip label="Random word">
+            <button
+              type="button"
+              aria-label="Random word"
+              onClick={() => {
+                const nodes = graph.nodes;
+                setFocused(nodes[Math.floor(Math.random() * nodes.length)]);
+              }}
+              className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+            >
+              <ShuffleIcon />
+            </button>
+          </Tooltip>
+        )}
+        <Tooltip label={settings.theme === "light" ? "Dark mode" : "Light mode"}>
+          <button
+            type="button"
+            aria-label={settings.theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+            onClick={() => updateSettings({ theme: settings.theme === "light" ? "dark" : "light" })}
+            className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+          >
+            {settings.theme === "light" ? <MoonIcon /> : <SunIcon />}
+          </button>
+        </Tooltip>
+        <Tooltip label="Settings">
+          <button
+            type="button"
+            aria-label="Settings"
+            onClick={() => { setSettingsOpen(true); setInfoOpen(false); }}
+            className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+          >
+            <GearIcon />
+          </button>
+        </Tooltip>
+        <Tooltip label="About">
+          <button
+            type="button"
+            aria-label="About"
+            onClick={() => { setInfoOpen(true); setSettingsOpen(false); }}
+            className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+          >
+            <InfoIcon />
+          </button>
+        </Tooltip>
       </div>
 
       {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
