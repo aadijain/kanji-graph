@@ -66,12 +66,20 @@ Tab-separated groups of visually similar / commonly confused kanji, one group pe
 `build-graph` looks up each word in Jitendex, falling back to a small built-in seed list if the dictionary isn't present.
 
 ```bash
-npm run fetch-jitendex                              # download to default cache location
+npm run fetch-jitendex                              # download to default shared location
 npm run fetch-jitendex -- --force                   # re-download even if already present
 JITENDEX_PATH=/path/to/jitendex.zip npm run build-graph  # use a custom zip path
 ```
 
 Jitendex can also be downloaded manually from <https://jitendex.org>.
+
+The pipeline checks three locations in order:
+
+1. `$JITENDEX_PATH` env var
+2. `data/dict/jitendex.zip` relative to the project root
+3. `~/.local/share/japanese-dicts/jitendex.zip` (default shared location)
+
+`JITENDEX_PATH` accepts any Yomitan-format dictionary zip, not just Jitendex. If you've already downloaded a Yomitan dictionary (e.g. JMdict), point `JITENDEX_PATH` at that file directly.
 
 ## Clipboard sync
 
@@ -102,7 +110,7 @@ Key configuration files:
 | Port | `vite.config.ts` |
 | App constants -- colors, localStorage keys, graph physics, audio defaults | `src/lib/constants.ts` |
 | Build pipeline constants -- dictionary paths, data file paths, output path | `scripts/constants.ts` |
-| Settings presets -- animation speeds, zoom levels, layout density values | `src/lib/settings.ts` |
+| Settings presets -- animation speeds, zoom levels, layout density, node size, neighbor spread values | `src/lib/settings.ts` |
 | Word list | `data/words.txt` |
 | Similar-kanji groups | `data/similar-kanji.tsv` |
 | Audio server URL template | Settings > Audio > Local audio server |

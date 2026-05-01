@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import type { DictionarySource, WordEntry } from "./source.ts";
-import { JITENDEX_CACHE_SUBPATH, JITENDEX_LOCAL_SUBPATH } from "../constants.ts";
+import { JITENDEX_SHARED_SUBPATH, JITENDEX_LOCAL_SUBPATH } from "../constants.ts";
 
 // Yomitan term-bank row layout (v3):
 // [expression, reading, definitionTags, rules, score, glossary, sequence, termTags]
@@ -24,7 +24,7 @@ function findZipPath(): string | null {
   const candidates = [
     process.env.JITENDEX_PATH,
     resolve(process.cwd(), JITENDEX_LOCAL_SUBPATH),
-    resolve(homedir(), JITENDEX_CACHE_SUBPATH),
+    resolve(homedir(), JITENDEX_SHARED_SUBPATH),
   ].filter((p): p is string => !!p);
   return candidates.find((p) => existsSync(p)) ?? null;
 }
@@ -114,7 +114,7 @@ class JitendexSource implements DictionarySource {
     if (!zipPath) {
       console.warn(
         "[jitendex] dictionary not found. Place the Jitendex .zip at\n" +
-          "  ~/.cache/kanji-graph/jitendex.zip  (or set JITENDEX_PATH=/path/to/jitendex.zip)\n" +
+          "  ~/.local/share/japanese-dicts/jitendex.zip  (or set JITENDEX_PATH=/path/to/jitendex.zip)\n" +
           "Download: https://jitendex.org  (or via its GitHub releases).\n" +
           "Continuing with seed dictionary as fallback.",
       );

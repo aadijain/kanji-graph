@@ -13,8 +13,8 @@ export const GRAPH_OUTPUT = "public/graph.json";
 export const JITENDEX_URL =
   "https://github.com/stephenmk/stephenmk.github.io/releases/latest/download/jitendex-yomitan.zip";
 
-// Path relative to os.homedir() — used when JITENDEX_PATH env var is not set.
-export const JITENDEX_CACHE_SUBPATH = ".cache/kanji-graph/jitendex.zip";
+// Path relative to os.homedir() — shared across tools; used when JITENDEX_PATH env var is not set.
+export const JITENDEX_SHARED_SUBPATH = ".local/share/japanese-dicts/jitendex.zip";
 
 // Project-local fallback path, relative to project root.
 export const JITENDEX_LOCAL_SUBPATH = "data/dict/jitendex.zip";

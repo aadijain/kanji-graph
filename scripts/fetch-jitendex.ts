@@ -3,10 +3,10 @@ import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
-import { JITENDEX_URL, JITENDEX_CACHE_SUBPATH } from "./constants.ts";
+import { JITENDEX_URL, JITENDEX_SHARED_SUBPATH } from "./constants.ts";
 
 const dest = resolve(
-  process.env.JITENDEX_PATH ?? resolve(homedir(), JITENDEX_CACHE_SUBPATH)
+  process.env.JITENDEX_PATH ?? resolve(homedir(), JITENDEX_SHARED_SUBPATH)
 );
 
 const force = process.argv.includes("--force");
