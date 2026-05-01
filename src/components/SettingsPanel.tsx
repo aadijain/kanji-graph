@@ -207,6 +207,17 @@ export default function SettingsPanel({ onClose }: Props) {
             )}
           </div>
 
+          {/* Clipboard */}
+          <div className="space-y-2.5">
+            <div className="text-[11px] uppercase tracking-wide text-ink-500">Clipboard</div>
+            <Row label="Follow clipboard">
+              <Toggle
+                checked={settings.clipboardSyncEnabled}
+                onChange={() => updateSettings({ clipboardSyncEnabled: !settings.clipboardSyncEnabled })}
+              />
+            </Row>
+          </div>
+
           {/* Advanced toggle */}
           <button
             type="button"

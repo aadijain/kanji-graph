@@ -15,8 +15,8 @@ Interactive web tool for visualizing connections between Japanese words you've l
 - **Search** -- type anywhere to search by kanji, kana reading, or romaji; arrow keys + Enter to jump
 - **Three edge types** -- shared kanji, same reading, visually similar kanji
 - **Pronunciation audio** -- local [Yomitan audio server](https://github.com/yomidevs/local-audio-yomichan) or browser TTS
+- **Clipboard sync** -- copy a word anywhere and the graph focuses it automatically (opt-in)
 - **Persistent layout** -- node positions saved to localStorage so that the graph persists between reloads
-- **Settings panel** -- edge type toggles, animation speed, zoom, neighbor spread, layout density, label size
 
 ## Quick start
 
@@ -72,6 +72,19 @@ JITENDEX_PATH=/path/to/jitendex.zip npm run build-graph  # use a custom zip path
 ```
 
 Jitendex can also be downloaded manually from <https://jitendex.org>.
+
+## Clipboard sync
+
+Enable **Settings > Clipboard > Follow clipboard** to have kanji-graph focus a word automatically when you copy it elsewhere.
+
+Two mechanisms, depending on context:
+
+- **Paste (`Ctrl+V`) while on the graph page** -- works over plain HTTP. Copy a word in Anki or a browser tab, switch to kanji-graph, paste. The graph focuses the word if it exists.
+- **Automatic on tab switch** -- requires HTTPS or localhost. When the tab regains focus, kanji-graph reads the clipboard and focuses the word if it changed since the last check.
+
+Words not in the graph are silently ignored in both cases.
+
+Browser clipboard permission is required; support varies by browser.
 
 ## Audio playback
 

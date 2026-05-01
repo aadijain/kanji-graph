@@ -162,6 +162,47 @@ export default function App() {
     }
   }, [focused?.id, focused?.word, focused?.reading, settings.audioAutoPlay]);
 
+  const lastClipboardWord = useRef("");
+  useEffect(() => {
+    if (!settings.clipboardSyncEnabled) return;
+
+    function focusWord(word: string) {
+      if (!word || word === lastClipboardWord.current) return;
+      lastClipboardWord.current = word;
+      const { graph: g, setFocused: sf } = useStore.getState();
+      if (!g) return;
+      const node = g.nodes.find((n) => n.word === word);
+      if (node) sf(node);
+    }
+
+    // Paste (Ctrl+V) — works on HTTP, no permission needed.
+    // Skip if the event target is a text input (e.g. search box).
+    const onPaste = (e: ClipboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const word = e.clipboardData?.getData("text/plain").trim() ?? "";
+      focusWord(word);
+    };
+
+    // Tab-switch clipboard read — only works on HTTPS / localhost.
+    const tryClipboard = async () => {
+      if (document.hidden) return;
+      try {
+        const word = (await navigator.clipboard.readText()).trim();
+        focusWord(word);
+      } catch { /* HTTP or permission denied — silently ignore */ }
+    };
+    const onVisibility = () => { if (!document.hidden) void tryClipboard(); };
+
+    document.addEventListener("paste", onPaste);
+    window.addEventListener("focus", tryClipboard);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("paste", onPaste);
+      window.removeEventListener("focus", tryClipboard);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [settings.clipboardSyncEnabled]);
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink-950">
       {graph ? (

@@ -74,6 +74,16 @@ export default function InfoModal({ onClose }: Props) {
           <InteractionTable rows={FOCUS_MODE} />
         </div>
 
+        {/* Clipboard sync */}
+        <div className="mt-4">
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">Clipboard sync</div>
+          <p className="mt-1.5 text-sm leading-relaxed text-ink-500">
+            Enable <span className="text-ink-300">Settings → Clipboard → Follow clipboard</span> to
+            focus a word by copying it. Press <span className="text-ink-300">Ctrl+V</span> on the graph to
+            focus the copied word, or switch tabs for automatic focus on HTTPS.
+          </p>
+        </div>
+
         {/* Edge types */}
         <div className="mt-4">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">Edge types</div>

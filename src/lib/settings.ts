@@ -19,6 +19,7 @@ export interface Settings {
   layoutDensity: LayoutDensity;
   nodeSize: NodeSize;
   theme: Theme;
+  clipboardSyncEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -32,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   layoutDensity: "normal",
   nodeSize: "medium",
   theme: "dark",
+  clipboardSyncEnabled: false,
 };
 
 // Mapping constants — shared between Graph.tsx and SettingsPanel.tsx.
