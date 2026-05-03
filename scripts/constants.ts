@@ -19,6 +19,14 @@ export const JITENDEX_SHARED_SUBPATH = ".local/share/japanese-dicts/jitendex.zip
 // Project-local fallback path, relative to project root.
 export const JITENDEX_LOCAL_SUBPATH = "data/dict/jitendex.zip";
 
+// ── JPDB frequency dictionary ────────────────────────────────────────────────
+
+export const JPDB_FREQ_URL =
+  "https://github.com/MarvNC/jpdb-freq-list/releases/download/2022-05-09/Freq.JPDB_2022-05-10T03_27_02.930Z.zip";
+
+// Path relative to os.homedir() — shared across tools; used when JPDB_FREQ_PATH env var is not set.
+export const JPDB_FREQ_SHARED_SUBPATH = ".local/share/japanese-dicts/jpdb-freq-list.zip";
+
 // ── Edge filtering ───────────────────────────────────────────────────────────
 
 // Shared-kanji edges are skipped for any kanji that appears in more than this

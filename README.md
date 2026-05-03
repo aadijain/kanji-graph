@@ -34,6 +34,7 @@ npm run dev             # start dev server
 | `npm run dev` | Start the Vite dev server |
 | `npm run build-graph` | Read `data/words.txt`, look up each word, write `public/graph.json` |
 | `npm run fetch-jitendex` | Download the latest Jitendex Yomitan zip |
+| `npm run fetch-freq-dict` | Download the JPDB frequency dictionary zip |
 | `npm run build` | Type-check + production build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 
@@ -80,6 +81,18 @@ The pipeline checks three locations in order:
 3. `~/.local/share/japanese-dicts/jitendex.zip` (default shared location)
 
 `JITENDEX_PATH` accepts any Yomitan-format dictionary zip, not just Jitendex. If you've already downloaded a Yomitan dictionary (e.g. JMdict), point `JITENDEX_PATH` at that file directly.
+
+## Frequency dictionary
+
+`fetch-freq-dict` downloads the [JPDB frequency list](https://github.com/MarvNC/jpdb-freq-list) (Yomitan format) for use in the build pipeline.
+
+```bash
+npm run fetch-freq-dict                              # download to default shared location
+npm run fetch-freq-dict -- --force                   # re-download even if already present
+JPDB_FREQ_PATH=/path/to/jpdb-freq-list.zip npm run build-graph  # use a custom zip path
+```
+
+The file is saved to `~/.local/share/japanese-dicts/jpdb-freq-list.zip` by default, alongside Jitendex.
 
 ## Clipboard sync
 
