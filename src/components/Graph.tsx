@@ -74,7 +74,6 @@ function drawLabel(
 
 export default function Graph() {
   const graph = useStore((s) => s.graph)!;
-  const hovered = useStore((s) => s.hovered);
   const setHovered = useStore((s) => s.setHovered);
   const focused = useStore((s) => s.focused);
   const setFocused = useStore((s) => s.setFocused);
@@ -83,9 +82,19 @@ export default function Graph() {
   const setTransitioning = useStore((s) => s.setTransitioning);
   const edgeVisibility = useStore((s) => s.settings.edgeVisibility);
   const settings = useStore((s) => s.settings);
+  // hoveredId subscription triggers a Graph re-render on hover enter/leave, which
+  // creates new linkColor/linkWidth function objects. The force-graph library calls
+  // notifyRedraw when these props change, setting needsRedraw=true so the canvas
+  // repaints even after the simulation has stopped (autoPauseRedraw=true default).
+  const hoveredId = useStore((s) => s.hovered?.id ?? null);
 
   const theme = useStore((s) => s.settings.theme);
   const COLORS = theme === "light" ? LIGHT_NODE_COLORS : NODE_COLORS;
+
+  // Hover state in refs for nodeCanvasObject, which is called per-frame by the
+  // canvas loop and doesn't need a React re-render to read live values.
+  const hoveredRef = useRef<WordNode | null>(null);
+  const hoverNeighborsRef = useRef<Set<string>>(new Set());
 
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const cancelTweenRef = useRef<(() => void) | null>(null);
@@ -181,20 +190,19 @@ export default function Graph() {
     return { nodes, links: graph.edges as Edge[] };
   }, [graph]);
 
-  // Active "focal" node for visual styling — focus wins over hover.
-  const focal = focused ?? hovered;
+  // Focus-mode neighbors (hover-mode neighbors live in hoverNeighborsRef).
   const neighbors = useMemo(() => {
-    if (!focal) return new Set<string>();
+    if (!focused) return new Set<string>();
     const out = new Set<string>();
     for (const e of graph.edges) {
       if (!edgeVisibility[e.type]) continue;
       const s = endpointId(e.source);
       const t = endpointId(e.target);
-      if (s === focal.id) out.add(t);
-      else if (t === focal.id) out.add(s);
+      if (s === focused.id) out.add(t);
+      else if (t === focused.id) out.add(s);
     }
     return out;
-  }, [focal, graph.edges, edgeVisibility]);
+  }, [focused, graph.edges, edgeVisibility]);
 
   // For each neighbor of focused: bridging kanji + which edge type contributed each.
   const neighborData = useMemo(() => {
@@ -431,7 +439,25 @@ export default function Graph() {
       onBackgroundClick={() => {}}
       // ----- nodes -----
       nodeRelSize={NODE_REL_SIZE}
-      onNodeHover={(n) => setHovered((n as WordNode | null) ?? null)}
+      onNodeHover={(n) => {
+        const node = (n as WordNode | null) ?? null;
+        hoveredRef.current = node;
+        if (node) {
+          const ev = useStore.getState().settings.edgeVisibility;
+          const set = new Set<string>();
+          for (const e of graph.edges) {
+            if (!ev[(e as Edge).type]) continue;
+            const s = endpointId(e.source);
+            const t = endpointId(e.target);
+            if (s === node.id) set.add(t);
+            else if (t === node.id) set.add(s);
+          }
+          hoverNeighborsRef.current = set;
+        } else {
+          hoverNeighborsRef.current = new Set();
+        }
+        setHovered(node);
+      }}
       onNodeClick={(n) => {
         const node = n as WordNode;
         if (!focused || focused.id !== node.id) setFocused(node);
@@ -439,15 +465,16 @@ export default function Graph() {
       nodeCanvasObjectMode={() => "replace"}
       nodeCanvasObject={(node, ctx, globalScale) => {
         const n = node as WordNode;
+        const h = hoveredRef.current;
         const isFocus = focused?.id === n.id;
-        const isNeighbor = neighbors.has(n.id);
+        const activeNeighbors = focused ? neighbors : hoverNeighborsRef.current;
+        const isNeighbor = activeNeighbors.has(n.id);
 
         if (focused && !isFocus && !isNeighbor) return; // hide non-relevant
 
-        const isHovered = !focused && hovered?.id === n.id;
-        const isHoverNeighbor = !focused && !!hovered && isNeighbor;
-        const dimmedByHover =
-          !focused && !!hovered && !isHovered && !isHoverNeighbor;
+        const isHovered = !focused && h?.id === n.id;
+        const isHoverNeighbor = !focused && !!h && isNeighbor;
+        const dimmedByHover = !focused && !!h && !isHovered && !isHoverNeighbor;
 
         const fontSize = NODE_SIZE_VALUES[settings.nodeSize] / globalScale;
         const dotR = (isFocus ? 5 : isHovered ? 5 : 3.5) / globalScale;
@@ -542,7 +569,7 @@ export default function Graph() {
       nodePointerAreaPaint={(node, color, ctx, globalScale) => {
         const n = node as WordNode;
         const isFocus = focused?.id === n.id;
-        const isNeighbor = neighbors.has(n.id);
+        const isNeighbor = (focused ? neighbors : hoverNeighborsRef.current).has(n.id);
         if (focused && !isFocus && !isNeighbor) return;
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -566,8 +593,8 @@ export default function Graph() {
           }
           return hexToRgba(hex, 0.85);
         }
-        if (!hovered) return hexToRgba(hex, 0.05);
-        return s === hovered.id || t === hovered.id ? hexToRgba(hex, 0.85) : COLORS.edgeHidden;
+        if (!hoveredId) return hexToRgba(hex, 0.05);
+        return s === hoveredId || t === hoveredId ? hexToRgba(hex, 0.85) : COLORS.edgeHidden;
       }}
       linkWidth={(link) => {
         const l = link as Edge;
@@ -580,8 +607,8 @@ export default function Graph() {
           if (hoveredReading && l.type !== "same-reading") return 0.5;
           return 1.6;
         }
-        if (!hovered) return 0.4;
-        return s === hovered.id || t === hovered.id ? 1.4 : 0;
+        if (!hoveredId) return 0.4;
+        return s === hoveredId || t === hoveredId ? 1.4 : 0;
       }}
       onLinkClick={(link) => {
         if (!focused) return;
