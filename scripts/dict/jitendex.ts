@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import type { DictionarySource, WordEntry } from "./source.ts";
-import { JITENDEX_SHARED_SUBPATH, JITENDEX_LOCAL_SUBPATH } from "../constants.ts";
+import { JITENDEX_SHARED_SUBPATH, JITENDEX_LOCAL_SUBPATH, MAX_GLOSSES } from "../constants.ts";
 
 // Yomitan term-bank row layout (v3):
 // [expression, reading, definitionTags, rules, score, glossary, sequence, termTags]
@@ -47,6 +47,8 @@ function extractPlainText(node: StructuredNode | undefined): string {
 // Walk the structured-content tree and collect only glossary list items.
 // Whitelist approach: only ul/ol[data.content=glossary] contributes text;
 // everything else (POS tags, forms, examples, attribution, xrefs) is skipped.
+// Only the first item per glossary block is kept — items within a block are
+// synonymous phrasings of the same sense and add visual noise.
 function extractGlosses(node: StructuredNode | undefined, out: string[]): void {
   if (node == null) return;
   if (typeof node === "string") return;
@@ -54,10 +56,11 @@ function extractGlosses(node: StructuredNode | undefined, out: string[]): void {
   if (typeof node === "object") {
     const ct = node.data?.content;
     if (ct === "glossary") {
-      // Each li child is one gloss item.
       const items = Array.isArray(node.content) ? node.content : node.content ? [node.content] : [];
-      for (const item of items) {
-        const text = cleanText(extractPlainText(item as StructuredNode));
+      // Take only the first gloss per sense group.
+      const first = items[0];
+      if (first) {
+        const text = cleanText(extractPlainText(first as StructuredNode));
         if (text) out.push(text);
       }
       return;
@@ -80,6 +83,7 @@ function parseGlossary(glossary: unknown): string[] {
   if (!Array.isArray(glossary)) return [];
   const out: string[] = [];
   for (const item of glossary) {
+    if (out.length >= MAX_GLOSSES) break;
     if (typeof item === "string") {
       const text = cleanText(item);
       if (text) out.push(text);
@@ -98,7 +102,7 @@ function parseGlossary(glossary: unknown): string[] {
       }
     }
   }
-  return out;
+  return out.slice(0, MAX_GLOSSES);
 }
 
 class JitendexSource implements DictionarySource {

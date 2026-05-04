@@ -27,6 +27,12 @@ export const JPDB_FREQ_URL =
 // Path relative to os.homedir() — shared across tools; used when JPDB_FREQ_PATH env var is not set.
 export const JPDB_FREQ_SHARED_SUBPATH = ".local/share/japanese-dicts/jpdb-freq-list.zip";
 
+// ── Dictionary parsing ───────────────────────────────────────────────────────
+
+// Max glosses kept per word entry. Taking one gloss per sense group already
+// eliminates synonym bloat; this cap handles highly polysemous words (e.g. 掛ける).
+export const MAX_GLOSSES = 5;
+
 // ── Edge filtering ───────────────────────────────────────────────────────────
 
 // Shared-kanji edges are skipped for any kanji that appears in more than this
@@ -34,4 +40,4 @@ export const JPDB_FREQ_SHARED_SUBPATH = ".local/share/japanese-dicts/jpdb-freq-l
 // counts that are noise rather than signal. Revisit as the word list grows -
 // at 4K words, 50 words/kanji is ~1225 edges per kanji which is already noisy;
 // lowering to ~30 would filter the top ~10 kanji and cut edges by ~60%.
-export const BRIDGE_KANJI_MAX_WORDS = 50;
+export const BRIDGE_KANJI_MAX_WORDS = 25;

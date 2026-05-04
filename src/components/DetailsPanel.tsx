@@ -87,9 +87,11 @@ export default function DetailsPanel() {
         </button>
       </div>
       <div className="jp mt-1 text-sm text-ink-300">{subject.reading}</div>
-      <div className="mt-3 text-sm leading-snug text-ink-100">
-        {subject.glosses.join("; ")}
-      </div>
+      <ul className="mt-3 space-y-0.5 text-sm leading-snug text-ink-100">
+        {subject.glosses.map((g, i) => (
+          <li key={i}>{g}</li>
+        ))}
+      </ul>
       <div className="mt-3 flex gap-3 text-[11px] uppercase tracking-wide text-ink-500">
         {subject.jlpt != null && <span>JLPT N{subject.jlpt}</span>}
         {subject.frequency != null && <span>rank #{subject.frequency}</span>}
