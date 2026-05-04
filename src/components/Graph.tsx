@@ -23,7 +23,6 @@ import {
   NODE_REL_SIZE,
   FOCUS_RING_RADIUS_MULTIPLIER,
   RESIZE_FIT_MS,
-  ENGINE_STOP_FIT_MS,
 } from "../lib/constants";
 
 type Pos = { id: string; x: number; y: number };
@@ -422,10 +421,7 @@ export default function Graph() {
       cooldownTicks={COOLDOWN_TICKS}
       onEngineStop={() => {
         tryApplyPendingFocus();
-        if (!focused) {
-          saveLayout(data.nodes as WordNode[]);
-          fgRef.current?.zoomToFit(ENGINE_STOP_FIT_MS, 80);
-        }
+        if (!focused) saveLayout(data.nodes as WordNode[]);
       }}
       d3AlphaDecay={D3_ALPHA_DECAY}
       d3VelocityDecay={D3_VELOCITY_DECAY}
