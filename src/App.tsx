@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useStore } from "./store";
 import Graph from "./components/Graph";
 import DetailsPanel from "./components/DetailsPanel";
@@ -74,6 +74,36 @@ function MoonIcon() {
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
+  );
+}
+
+function FpsOverlay() {
+  const [fps, setFps] = useState(0);
+  const frameCount = useRef(0);
+  const lastTime = useRef(performance.now());
+  const rafId = useRef(0);
+
+  const tick = useCallback(() => {
+    frameCount.current += 1;
+    const now = performance.now();
+    const elapsed = now - lastTime.current;
+    if (elapsed >= 1000) {
+      setFps(Math.round((frameCount.current * 1000) / elapsed));
+      frameCount.current = 0;
+      lastTime.current = now;
+    }
+    rafId.current = requestAnimationFrame(tick);
+  }, []);
+
+  useEffect(() => {
+    rafId.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId.current);
+  }, [tick]);
+
+  return (
+    <div className="pointer-events-none absolute right-6 top-2 z-10 rounded bg-ink-900/80 px-2 py-1 font-mono text-[11px] text-accent-paper">
+      {fps} fps
+    </div>
   );
 }
 
@@ -226,6 +256,7 @@ export default function App() {
       )}
       <StatsBar />
       <Legend />
+      {settings.showFps && <FpsOverlay />}
       <FocusOverlay />
       <SearchOverlay blocked={infoOpen || settingsOpen} />
       <DetailsPanel />

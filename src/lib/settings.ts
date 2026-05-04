@@ -21,6 +21,7 @@ export interface Settings {
   nodeSize: NodeSize;
   theme: Theme;
   clipboardSyncEnabled: boolean;
+  showFps: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   nodeSize: "medium",
   theme: "dark",
   clipboardSyncEnabled: false,
+  showFps: false,
 };
 
 // Mapping constants — shared between Graph.tsx and SettingsPanel.tsx.
