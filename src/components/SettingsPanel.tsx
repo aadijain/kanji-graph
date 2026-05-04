@@ -75,21 +75,51 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+const SECTION_STATE_KEY = "kanji-graph:settings-sections";
+
+function getSectionOpen(id: string): boolean {
+  try {
+    const stored = localStorage.getItem(SECTION_STATE_KEY);
+    if (!stored) return false;
+    const parsed = JSON.parse(stored);
+    return parsed[id] === true;
+  } catch {
+    return false;
+  }
+}
+
+function setSectionOpen(id: string, open: boolean) {
+  try {
+    const stored = localStorage.getItem(SECTION_STATE_KEY);
+    const parsed = stored ? JSON.parse(stored) : {};
+    localStorage.setItem(SECTION_STATE_KEY, JSON.stringify({ ...parsed, [id]: open }));
+  } catch {
+    // ignore
+  }
+}
+
 function Section({
   title,
-  defaultOpen = true,
   children,
 }: {
   title: string;
-  defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const id = title.toLowerCase().replace(/\s+/g, "-");
+  const [open, setOpen] = useState(() => getSectionOpen(id));
+
+  function toggle() {
+    setOpen((o) => {
+      setSectionOpen(id, !o);
+      return !o;
+    });
+  }
+
   return (
     <div>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         className="flex w-full items-center gap-2 text-[11px] text-ink-500 transition-colors hover:text-ink-300"
       >
         <svg
@@ -268,7 +298,7 @@ export default function SettingsPanel({ onClose }: Props) {
           </Section>
 
           {/* Focus */}
-          <Section title="Focus" defaultOpen={false}>
+          <Section title="Focus">
             <Row label="Animation">
               <Steps options={SPEED_OPTIONS} value={settings.animationSpeed} onChange={(v) => updateSettings({ animationSpeed: v })} />
             </Row>
@@ -281,7 +311,7 @@ export default function SettingsPanel({ onClose }: Props) {
           </Section>
 
           {/* Graph */}
-          <Section title="Graph" defaultOpen={false}>
+          <Section title="Graph">
             <Row label="Layout">
               <Steps options={DENSITY_OPTIONS} value={settings.layoutDensity} onChange={(v) => updateSettings({ layoutDensity: v })} />
             </Row>
