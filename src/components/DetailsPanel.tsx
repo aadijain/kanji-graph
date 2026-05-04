@@ -36,7 +36,8 @@ export default function DetailsPanel() {
     const byKanji = new Map<string, string[]>();
     for (const k of subject.kanji) byKanji.set(k, []);
     const sameReading: string[] = [];
-    const similarByKanji = new Map<string, string[]>();
+    // key: neighbor kanji (K2); value: subject-side kanji (K1) + neighbor words
+    const similarByKanji = new Map<string, { subjectKanji: string; others: string[] }>();
     for (const e of graph.edges as Edge[]) {
       const s = endpointId(e.source);
       const t = endpointId(e.target);
@@ -47,11 +48,12 @@ export default function DetailsPanel() {
       } else if (e.type === "same-reading") {
         sameReading.push(other);
       } else if (e.type === "similar-kanji") {
+        const subjectKanji = e.via.find((k) => subject.kanji.includes(k));
         for (const k of e.via) {
           if (!subject.kanji.includes(k)) {
-            const arr = similarByKanji.get(k) ?? [];
-            arr.push(other);
-            similarByKanji.set(k, arr);
+            const entry = similarByKanji.get(k) ?? { subjectKanji: subjectKanji ?? "", others: [] };
+            entry.others.push(other);
+            similarByKanji.set(k, entry);
           }
         }
       }
@@ -128,8 +130,8 @@ export default function DetailsPanel() {
             similar kanji
           </div>
           <div className="mt-2 space-y-2">
-            {[...connections.similarByKanji.entries()].map(([k, others]) => {
-              const dim = !!hoveredKanji && hoveredKanji !== k;
+            {[...connections.similarByKanji.entries()].map(([k, { subjectKanji, others }]) => {
+              const dim = !!hoveredKanji && hoveredKanji !== subjectKanji;
               return (
                 <div
                   key={k}

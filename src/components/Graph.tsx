@@ -222,8 +222,9 @@ export default function Graph() {
 
   // For each neighbor of focused: bridging kanji + which edge type contributed each.
   const neighborData = useMemo(() => {
-    type NData = { via: string[]; kanjiType: Map<string, Edge["type"]>; primaryType: Edge["type"]; types: Edge["type"][] };
-    const map = new Map<string, { viaSet: Set<string>; kanjiType: Map<string, Edge["type"]>; types: Edge["type"][] }>();
+    // similarKanjiMap: maps focused-word kanji -> neighbor-word kanji for similar-kanji edges
+    type NData = { via: string[]; kanjiType: Map<string, Edge["type"]>; primaryType: Edge["type"]; types: Edge["type"][]; similarKanjiMap: Map<string, string> };
+    const map = new Map<string, { viaSet: Set<string>; kanjiType: Map<string, Edge["type"]>; types: Edge["type"][]; similarPairs: Map<string, string> }>();
     if (!focused) return new Map<string, NData>();
     for (const e of graph.edges as Edge[]) {
       if (!edgeVisibility[e.type]) continue;
@@ -231,12 +232,17 @@ export default function Graph() {
       const t = endpointId(e.target);
       if (s !== focused.id && t !== focused.id) continue;
       const other = s === focused.id ? t : s;
-      const d = map.get(other) ?? { viaSet: new Set(), kanjiType: new Map(), types: [] as Edge["type"][] };
+      const d = map.get(other) ?? { viaSet: new Set(), kanjiType: new Map(), types: [] as Edge["type"][], similarPairs: new Map() };
       d.types.push(e.type);
       if (e.type !== "same-reading") {
         for (const k of e.via) {
           d.viaSet.add(k);
           if (!d.kanjiType.has(k)) d.kanjiType.set(k, e.type);
+        }
+        if (e.type === "similar-kanji") {
+          const focusedK = e.via.find((k) => focused.kanji.includes(k));
+          const neighborK = e.via.find((k) => !focused.kanji.includes(k));
+          if (focusedK && neighborK) d.similarPairs.set(focusedK, neighborK);
         }
       }
       map.set(other, d);
@@ -245,7 +251,7 @@ export default function Graph() {
     const typePriority: Edge["type"][] = ["shared-kanji", "similar-kanji", "same-reading"];
     for (const [id, d] of map) {
       const primaryType = typePriority.find((t) => d.types.includes(t)) ?? d.types[0];
-      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types });
+      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types, similarKanjiMap: d.similarPairs });
     }
     return result;
   }, [focused, graph.edges, edgeVisibility]);
@@ -575,8 +581,14 @@ export default function Graph() {
             if (via.includes(hoveredKanji)) {
               baseColor = COLORS.highlight;
               weight = 600;
-              highlightSet = new Set([hoveredKanji]);
-              highlightColor = settings.edgeColors[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"];
+              // For similar-kanji edges the bridging char in the neighbor's label is
+              // the partner kanji (K2), not the hovered kanji (K1) from the focused word.
+              const edgeType = nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji";
+              const labelKanji = edgeType === "similar-kanji"
+                ? (nd?.similarKanjiMap.get(hoveredKanji) ?? hoveredKanji)
+                : hoveredKanji;
+              highlightSet = new Set([labelKanji]);
+              highlightColor = settings.edgeColors[edgeType];
             } else {
               baseColor = COLORS.muted;
             }
