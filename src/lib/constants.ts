@@ -68,11 +68,17 @@ export const EDGE_COLOR_SWATCHES = [
 ] as const;
 
 // Converts a 6-digit hex color to an rgba() string.
+const _rgbaCache = new Map<string, string>();
 export function hexToRgba(hex: string, alpha: number): string {
+  const key = `${hex}${alpha}`;
+  const cached = _rgbaCache.get(key);
+  if (cached) return cached;
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  const result = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  _rgbaCache.set(key, result);
+  return result;
 }
 
 // ── Graph renderer ───────────────────────────────────────────────────────────
