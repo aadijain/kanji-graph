@@ -104,6 +104,7 @@ function parseGlossary(glossary: unknown): string[] {
 class JitendexSource implements DictionarySource {
   name = "jitendex";
   private byWord = new Map<string, WordEntry>();
+  private bestScore = new Map<string, number>();
   private prepared = false;
 
   async prepare() {
@@ -135,16 +136,15 @@ class JitendexSource implements DictionarySource {
         const [expression, reading, , , score, glossary, , termTags] = row;
         if (!expression) continue;
         const numScore = typeof score === "number" ? score : -Infinity;
-        const existing = this.byWord.get(expression);
         // Keep the highest-score entry so the most common reading wins over archaic ones.
-        if (existing && (existing.frequency ?? -Infinity) >= numScore) continue;
+        if ((this.bestScore.get(expression) ?? -Infinity) >= numScore) continue;
         const glosses = parseGlossary(glossary);
         if (glosses.length === 0) continue;
+        this.bestScore.set(expression, numScore);
         this.byWord.set(expression, {
           word: expression,
           reading: reading ?? "",
           glosses,
-          frequency: numScore === -Infinity ? undefined : numScore,
           jlpt: jlptFromTags(typeof termTags === "string" ? termTags : ""),
         });
       }

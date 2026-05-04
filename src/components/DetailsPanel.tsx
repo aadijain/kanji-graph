@@ -92,7 +92,7 @@ export default function DetailsPanel() {
       </div>
       <div className="mt-3 flex gap-3 text-[11px] uppercase tracking-wide text-ink-500">
         {subject.jlpt != null && <span>JLPT N{subject.jlpt}</span>}
-        {subject.frequency != null && <span>freq {subject.frequency}</span>}
+        {subject.frequency != null && <span>rank #{subject.frequency}</span>}
       </div>
 
       {connections && connections.byKanji.size > 0 && (
