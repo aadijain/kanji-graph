@@ -22,6 +22,7 @@ export interface Settings {
   theme: Theme;
   clipboardSyncEnabled: boolean;
   showFps: boolean;
+  showFocusHistory: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -38,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   clipboardSyncEnabled: false,
   showFps: false,
+  showFocusHistory: true,
 };
 
 // Mapping constants — shared between Graph.tsx and SettingsPanel.tsx.

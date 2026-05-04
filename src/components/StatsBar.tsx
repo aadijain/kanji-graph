@@ -36,7 +36,7 @@ export default function StatsBar() {
   if (focusedByType) {
     const total = EDGE_TYPES.reduce((sum, t) => sum + (focusedByType[t] ?? 0), 0);
     return (
-      <div className="absolute left-6 top-6 flex gap-5 rounded-md bg-ink-900 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-ink-300">
+      <div className="flex gap-5 rounded-md bg-ink-900 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-ink-300">
         <span className="pointer-events-none">
           <span className="text-accent-paper">{total}</span> connections
         </span>
@@ -55,7 +55,7 @@ export default function StatsBar() {
 
   const { words, edges, kanji } = graph.stats;
   return (
-    <div className="absolute left-6 top-6 flex gap-5 rounded-md bg-ink-900 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-ink-300">
+    <div className="flex gap-5 rounded-md bg-ink-900 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-ink-300">
       <span className="pointer-events-none">
         <span className="text-accent-paper">{words}</span> words
       </span>

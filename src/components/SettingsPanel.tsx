@@ -288,6 +288,12 @@ export default function SettingsPanel({ onClose }: Props) {
             <Row label="Label size">
               <Steps options={LABEL_SIZE_OPTIONS} value={settings.nodeSize} onChange={(v) => updateSettings({ nodeSize: v })} />
             </Row>
+            <Row label="Focus history trail">
+              <Toggle
+                checked={settings.showFocusHistory}
+                onChange={() => updateSettings({ showFocusHistory: !settings.showFocusHistory })}
+              />
+            </Row>
             <Row label="FPS counter">
               <Toggle
                 checked={settings.showFps}

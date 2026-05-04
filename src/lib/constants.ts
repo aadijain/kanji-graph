@@ -91,3 +91,4 @@ export const NODE_REL_SIZE = 4;
 export const FOCUS_RING_RADIUS_MULTIPLIER = 2.4;
 export const RESIZE_FIT_MS = 400;
 export const ENGINE_STOP_FIT_MS = 600;
+export const FOCUS_HISTORY_MAX = 10;

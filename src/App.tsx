@@ -3,6 +3,7 @@ import { useStore } from "./store";
 import Graph from "./components/Graph";
 import DetailsPanel from "./components/DetailsPanel";
 import StatsBar from "./components/StatsBar";
+import FocusHistory from "./components/FocusHistory";
 import Legend from "./components/Legend";
 import FocusOverlay from "./components/FocusOverlay";
 import SearchOverlay from "./components/SearchOverlay";
@@ -264,7 +265,10 @@ export default function App() {
           loading…
         </div>
       )}
-      <StatsBar />
+      <div className={`absolute top-6 flex flex-col items-start gap-2 transition-all duration-200 ${focused ? "left-28" : "left-6"}`}>
+        <StatsBar />
+        <FocusHistory />
+      </div>
       <Legend />
       {settings.showFps && <FpsOverlay />}
       <FocusOverlay />
