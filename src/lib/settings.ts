@@ -19,6 +19,7 @@ export interface Settings {
   neighborSpread: NeighborSpread;
   layoutDensity: LayoutDensity;
   nodeSize: NodeSize;
+  nodeSizeByFrequency: boolean;
   theme: Theme;
   clipboardSyncEnabled: boolean;
   showFps: boolean;
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   neighborSpread: "normal",
   layoutDensity: "normal",
   nodeSize: "medium",
+  nodeSizeByFrequency: false,
   theme: "dark",
   clipboardSyncEnabled: false,
   showFps: false,

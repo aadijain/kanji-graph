@@ -288,6 +288,12 @@ export default function SettingsPanel({ onClose }: Props) {
             <Row label="Label size">
               <Steps options={LABEL_SIZE_OPTIONS} value={settings.nodeSize} onChange={(v) => updateSettings({ nodeSize: v })} />
             </Row>
+            <Row label="Scale dots by frequency">
+              <Toggle
+                checked={settings.nodeSizeByFrequency}
+                onChange={() => updateSettings({ nodeSizeByFrequency: !settings.nodeSizeByFrequency })}
+              />
+            </Row>
             <Row label="Focus history trail">
               <Toggle
                 checked={settings.showFocusHistory}
