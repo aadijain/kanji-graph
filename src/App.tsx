@@ -77,11 +77,23 @@ function MoonIcon() {
   );
 }
 
+function FitIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+      <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+      <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+      <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+    </svg>
+  );
+}
+
 export default function App() {
   const setGraph = useStore((s) => s.setGraph);
   const graph = useStore((s) => s.graph);
   const focused = useStore((s) => s.focused);
   const setFocused = useStore((s) => s.setFocused);
+  const resetZoom = useStore((s) => s.resetZoom);
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
 
@@ -232,6 +244,18 @@ export default function App() {
               className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
             >
               <ShuffleIcon />
+            </button>
+          </Tooltip>
+        )}
+        {graph && (
+          <Tooltip label="Reset zoom">
+            <button
+              type="button"
+              aria-label="Reset zoom"
+              onClick={() => resetZoom?.()}
+              className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+            >
+              <FitIcon />
             </button>
           </Tooltip>
         )}

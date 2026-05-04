@@ -401,6 +401,25 @@ export default function Graph() {
     return () => useStore.getState().setFocusScreenPosGetter(null);
   }, [data]);
 
+  useEffect(() => {
+    const reset = () => {
+      const fg = fgRef.current;
+      if (!fg) return;
+      const { focused, settings } = useStore.getState();
+      const transitionMs = ANIMATION_MS[settings.animationSpeed];
+      if (focused) {
+        const node = (data.nodes as WordNode[]).find((n) => n.id === focused.id);
+        if (!node || node.x == null || node.y == null) return;
+        fg.centerAt(node.x, node.y, transitionMs);
+        fg.zoom(FOCUS_ZOOM_VALUES[settings.focusZoom], transitionMs);
+      } else {
+        fg.zoomToFit(transitionMs, 80);
+      }
+    };
+    useStore.getState().setResetZoom(reset);
+    return () => useStore.getState().setResetZoom(null);
+  }, [data]);
+
   // Deep-link focus on page load. App.tsx captures the initial #word=
   // hash into pendingFocusWord. We only apply it when the layout is settled:
   //   - warm cache: data.nodes already have x/y from localStorage → fire from
