@@ -99,6 +99,7 @@ export default function Graph() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const cancelTweenRef = useRef<(() => void) | null>(null);
   const cachedPositionsRef = useRef<Map<string, XY>>(new Map());
+  const cameraSnapshotRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number }>(() => ({
     w: typeof window === "undefined" ? 0 : window.innerWidth,
@@ -271,6 +272,8 @@ export default function Graph() {
             cachedPositionsRef.current.set(n.id, { x: n.x, y: n.y });
           }
         }
+        const center = fg.centerAt();
+        cameraSnapshotRef.current = { x: center.x, y: center.y, zoom: fg.zoom() };
       }
 
       const focusNode = nodes.find((n) => n.id === focused.id);
@@ -344,7 +347,13 @@ export default function Graph() {
       }
 
       setTransitioning(true);
-      fg.zoomToFit(transitionMs, 80);
+      const snap = cameraSnapshotRef.current;
+      if (snap) {
+        fg.centerAt(snap.x, snap.y, transitionMs);
+        fg.zoom(snap.zoom, transitionMs);
+      } else {
+        fg.zoomToFit(transitionMs, 80);
+      }
 
       cancelTweenRef.current = tween({
         duration: transitionMs,
@@ -360,6 +369,7 @@ export default function Graph() {
         },
         onComplete: () => {
           cachedPositionsRef.current.clear();
+          cameraSnapshotRef.current = null;
           setTransitioning(false);
         },
       });
