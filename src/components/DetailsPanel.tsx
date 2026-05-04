@@ -26,6 +26,7 @@ export default function DetailsPanel() {
   const focused = useStore((s) => s.focused);
   const graph = useStore((s) => s.graph);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
+  const hoveredReading = useStore((s) => s.hoveredReading);
   const edgeColors = useStore((s) => s.settings.edgeColors);
   const [playing, setPlaying] = useState(false);
 
@@ -101,7 +102,7 @@ export default function DetailsPanel() {
           </div>
           <div className="mt-2 space-y-2">
             {[...connections.byKanji.entries()].map(([k, others]) => {
-              const dim = !!hoveredKanji && hoveredKanji !== k;
+              const dim = (!!hoveredKanji && hoveredKanji !== k) || hoveredReading;
               return (
                 <div
                   key={k}
@@ -131,7 +132,7 @@ export default function DetailsPanel() {
           </div>
           <div className="mt-2 space-y-2">
             {[...connections.similarByKanji.entries()].map(([k, { subjectKanji, others }]) => {
-              const dim = !!hoveredKanji && hoveredKanji !== subjectKanji;
+              const dim = (!!hoveredKanji && hoveredKanji !== subjectKanji) || hoveredReading;
               return (
                 <div
                   key={k}
@@ -151,7 +152,7 @@ export default function DetailsPanel() {
       )}
 
       {connections && connections.sameReading.length > 0 && (
-        <div className="mt-4 border-t border-ink-700 pt-3">
+        <div className={`mt-4 border-t border-ink-700 pt-3 transition-opacity ${hoveredKanji ? "opacity-30" : "opacity-100"}`}>
           <div className="text-[11px] uppercase tracking-wide text-ink-500">
             same reading
           </div>
