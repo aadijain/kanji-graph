@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
 import { useStore } from "../store";
-import { endpointId, type Edge, type WordNode } from "../types";
+import { endpointId, type Edge, type EdgeType, type WordNode } from "../types";
 import { tween } from "../lib/animation";
 import { radialAround, type XY } from "../lib/layout";
 import {
@@ -190,19 +190,34 @@ export default function Graph() {
     return { nodes, links: graph.edges as Edge[] };
   }, [graph]);
 
+  // Adjacency index keyed by edge type, built once per graph load.
+  // Replaces O(E) edge scans in neighbors, onNodeHover, and the focus tween.
+  const adjByType = useMemo(() => {
+    const maps = new Map<EdgeType, Map<string, Set<string>>>();
+    for (const e of graph.edges as Edge[]) {
+      const s = endpointId(e.source);
+      const t = endpointId(e.target);
+      let m = maps.get(e.type);
+      if (!m) { m = new Map(); maps.set(e.type, m); }
+      if (!m.has(s)) m.set(s, new Set());
+      if (!m.has(t)) m.set(t, new Set());
+      m.get(s)!.add(t);
+      m.get(t)!.add(s);
+    }
+    return maps;
+  }, [graph]);
+
   // Focus-mode neighbors (hover-mode neighbors live in hoverNeighborsRef).
   const neighbors = useMemo(() => {
     if (!focused) return new Set<string>();
     const out = new Set<string>();
-    for (const e of graph.edges) {
-      if (!edgeVisibility[e.type]) continue;
-      const s = endpointId(e.source);
-      const t = endpointId(e.target);
-      if (s === focused.id) out.add(t);
-      else if (t === focused.id) out.add(s);
+    for (const [type, m] of adjByType) {
+      if (!edgeVisibility[type]) continue;
+      const nbrs = m.get(focused.id);
+      if (nbrs) for (const id of nbrs) out.add(id);
     }
     return out;
-  }, [focused, graph.edges, edgeVisibility]);
+  }, [focused, adjByType, edgeVisibility]);
 
   // For each neighbor of focused: bridging kanji + which edge type contributed each.
   const neighborData = useMemo(() => {
@@ -262,11 +277,9 @@ export default function Graph() {
       if (!focusNode) return;
 
       const focusNeighbors = new Set<string>();
-      for (const e of graph.edges) {
-        const s = endpointId(e.source);
-        const t = endpointId(e.target);
-        if (s === focused.id) focusNeighbors.add(t);
-        else if (t === focused.id) focusNeighbors.add(s);
+      for (const [, m] of adjByType) {
+        const nbrs = m.get(focused.id);
+        if (nbrs) for (const id of nbrs) focusNeighbors.add(id);
       }
       const neighborNodes = nodes.filter((n) => focusNeighbors.has(n.id));
       const radial = radialAround(focusNode, neighborNodes, neighborRadius);
@@ -445,12 +458,10 @@ export default function Graph() {
         if (node) {
           const ev = useStore.getState().settings.edgeVisibility;
           const set = new Set<string>();
-          for (const e of graph.edges) {
-            if (!ev[(e as Edge).type]) continue;
-            const s = endpointId(e.source);
-            const t = endpointId(e.target);
-            if (s === node.id) set.add(t);
-            else if (t === node.id) set.add(s);
+          for (const [type, m] of adjByType) {
+            if (!ev[type]) continue;
+            const nbrs = m.get(node.id);
+            if (nbrs) for (const id of nbrs) set.add(id);
           }
           hoverNeighborsRef.current = set;
         } else {
