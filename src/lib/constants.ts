@@ -92,3 +92,7 @@ export const FOCUS_RING_RADIUS_MULTIPLIER = 2.4;
 export const RESIZE_FIT_MS = 400;
 export const ENGINE_STOP_FIT_MS = 600;
 export const FOCUS_HISTORY_MAX = 10;
+// Width of the left back-to-graph strip in focus mode (px).
+export const BACK_STRIP_WIDTH = 80;
+// Left offset for panels that must clear the back strip (strip + 16px gap).
+export const BACK_STRIP_PANEL_LEFT = BACK_STRIP_WIDTH + 16;

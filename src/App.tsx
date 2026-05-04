@@ -10,6 +10,7 @@ import SearchOverlay from "./components/SearchOverlay";
 import InfoModal from "./components/InfoModal";
 import SettingsPanel from "./components/SettingsPanel";
 import { playPronunciation } from "./lib/audio";
+import { BACK_STRIP_PANEL_LEFT } from "./lib/constants";
 import type { GraphData } from "./types";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -265,7 +266,7 @@ export default function App() {
           loading…
         </div>
       )}
-      <div className={`absolute top-6 flex flex-col items-start gap-2 transition-all duration-200 ${focused ? "left-28" : "left-6"}`}>
+      <div style={{ left: focused ? BACK_STRIP_PANEL_LEFT : 24 }} className="absolute top-6 flex flex-col items-start gap-2 transition-all duration-200">
         <StatsBar />
         <FocusHistory />
       </div>

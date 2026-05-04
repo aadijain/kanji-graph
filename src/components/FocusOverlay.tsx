@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
-import { KANJI_RE } from "../lib/constants";
+import { KANJI_RE, BACK_STRIP_WIDTH } from "../lib/constants";
 
 function BackEdge({ onClick }: { onClick: () => void }) {
   return (
@@ -8,11 +8,12 @@ function BackEdge({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="Return to graph view (Esc)"
-      className="pointer-events-auto group absolute inset-y-0 left-0 w-24 cursor-pointer"
+      style={{ width: BACK_STRIP_WIDTH }}
+      className="pointer-events-auto group absolute inset-y-0 left-0 cursor-pointer"
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-ink-800/20 to-transparent opacity-100 transition-opacity duration-150 group-hover:from-ink-700/60" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink-900/80 via-ink-900/40 to-transparent transition-all duration-150 group-hover:from-ink-800 group-hover:via-ink-800/60" />
       <div className="absolute inset-0 flex items-center justify-start pl-3">
-        <span className="text-3xl text-ink-600 transition-all duration-150 group-hover:text-ink-200">‹</span>
+        <span className="text-5xl text-ink-400 transition-all duration-150 group-hover:text-ink-100">‹</span>
       </div>
     </button>
   );
