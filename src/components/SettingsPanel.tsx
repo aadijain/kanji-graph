@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "../store";
 import {
   DEFAULT_SETTINGS,
@@ -182,9 +182,29 @@ interface Props {
   onClose: () => void;
 }
 
+type ClipboardPermState = "granted" | "denied" | "prompt" | "unavailable";
+
+async function queryClipboardPerm(): Promise<ClipboardPermState> {
+  try {
+    const result = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
+    return result.state as ClipboardPermState;
+  } catch {
+    return "unavailable";
+  }
+}
+
 export default function SettingsPanel({ onClose }: Props) {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
+  const [clipboardPerm, setClipboardPerm] = useState<ClipboardPermState | null>(null);
+
+  useEffect(() => {
+    if (settings.clipboardSyncEnabled) {
+      void queryClipboardPerm().then(setClipboardPerm);
+    } else {
+      setClipboardPerm(null);
+    }
+  }, [settings.clipboardSyncEnabled]);
 
   function toggleEdge(type: EdgeType) {
     updateSettings({
@@ -292,9 +312,27 @@ export default function SettingsPanel({ onClose }: Props) {
             <Row label="Follow clipboard">
               <Toggle
                 checked={settings.clipboardSyncEnabled}
-                onChange={() => updateSettings({ clipboardSyncEnabled: !settings.clipboardSyncEnabled })}
+                onChange={async () => {
+                  const enabling = !settings.clipboardSyncEnabled;
+                  if (enabling) {
+                    try {
+                      await navigator.clipboard.readText();
+                    } catch { /* permission denied or unsupported — feature still toggles on */ }
+                    setClipboardPerm(await queryClipboardPerm());
+                  }
+                  updateSettings({ clipboardSyncEnabled: enabling });
+                }}
               />
             </Row>
+            {settings.clipboardSyncEnabled && clipboardPerm !== null && (
+              <p className="text-xs text-ink-500">
+                {clipboardPerm === "granted"
+                  ? "Tab-switch detection active."
+                  : clipboardPerm === "denied"
+                  ? "Clipboard access denied - use Ctrl+V to focus a word."
+                  : "Tab-switch detection unavailable in this browser - use Ctrl+V to focus a word."}
+              </p>
+            )}
           </Section>
 
           {/* Focus */}
