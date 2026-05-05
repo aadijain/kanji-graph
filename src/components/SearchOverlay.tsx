@@ -42,10 +42,12 @@ export default function SearchOverlay({
 
   const results = useMemo(() => {
     if (!graph || !query) return [];
-    const qRomaji = query.toLowerCase();
+    const q = query.trim();
+    if (!q) return [];
+    const qRomaji = q.toLowerCase();
     return graph.nodes
-      .filter((n) => matchesQuery(n, query, qRomaji))
-      .sort((a, b) => resultScore(a, query, qRomaji) - resultScore(b, query, qRomaji))
+      .filter((n) => matchesQuery(n, q, qRomaji))
+      .sort((a, b) => resultScore(a, q, qRomaji) - resultScore(b, q, qRomaji))
       .slice(0, MAX_RESULTS);
   }, [graph, query]);
 
@@ -58,6 +60,20 @@ export default function SearchOverlay({
     setQuery("");
     onClose?.();
   };
+
+  useEffect(() => {
+    if (!active) return;
+    const onPaste = (e: ClipboardEvent) => {
+      const text = e.clipboardData?.getData("text/plain") ?? "";
+      if (text) {
+        setQuery((q) => q + text);
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("paste", onPaste, { capture: true });
+    return () => document.removeEventListener("paste", onPaste, { capture: true });
+  }, [active]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
