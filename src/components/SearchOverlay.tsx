@@ -25,12 +25,20 @@ function resultScore(node: WordNode, q: string, qRomaji: string): number {
   return 3;
 }
 
-export default function SearchOverlay({ blocked = false }: { blocked?: boolean }) {
+export default function SearchOverlay({
+  blocked = false,
+  open = false,
+  onClose,
+}: {
+  blocked?: boolean;
+  open?: boolean;
+  onClose?: () => void;
+}) {
   const graph = useStore((s) => s.graph);
   const setFocused = useStore((s) => s.setFocused);
   const [query, setQuery] = useState("");
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const active = query.length > 0;
+  const active = open || query.length > 0;
 
   const results = useMemo(() => {
     if (!graph || !query) return [];
@@ -48,6 +56,7 @@ export default function SearchOverlay({ blocked = false }: { blocked?: boolean }
   const commit = (node: WordNode) => {
     setFocused(node);
     setQuery("");
+    onClose?.();
   };
 
   useEffect(() => {
@@ -66,6 +75,7 @@ export default function SearchOverlay({ blocked = false }: { blocked?: boolean }
 
       if (e.key === "Escape") {
         setQuery("");
+        onClose?.();
         e.stopPropagation();
         e.preventDefault();
         return;
@@ -106,7 +116,7 @@ export default function SearchOverlay({ blocked = false }: { blocked?: boolean }
   return (
     <div
       className="absolute inset-0 z-50 flex justify-center pt-20"
-      onClick={() => setQuery("")}
+      onClick={() => { setQuery(""); onClose?.(); }}
     >
       <div
         className="pointer-events-auto h-fit w-96 rounded-xl border border-ink-700 bg-ink-950 shadow-2xl"

@@ -77,6 +77,15 @@ function MoonIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
 function FpsOverlay() {
   const [fps, setFps] = useState(0);
   const frameCount = useRef(0);
@@ -134,6 +143,7 @@ export default function App() {
 
   const [infoOpen, setInfoOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     // Capture initial #word=... hash before any graph is loaded; Graph.tsx will
@@ -258,11 +268,23 @@ export default function App() {
       <Legend />
       {settings.showFps && <FpsOverlay />}
       <FocusOverlay />
-      <SearchOverlay blocked={infoOpen || settingsOpen} />
+      <SearchOverlay blocked={infoOpen || settingsOpen} open={searchOpen} onClose={() => setSearchOpen(false)} />
       <DetailsPanel />
 
       {/* Info / Settings / Theme buttons — bottom-right */}
       <div className="absolute bottom-6 right-6 flex gap-2">
+        {graph && (
+          <Tooltip label="Search">
+            <button
+              type="button"
+              aria-label="Search"
+              onClick={() => { setSearchOpen(true); setInfoOpen(false); setSettingsOpen(false); }}
+              className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+            >
+              <SearchIcon />
+            </button>
+          </Tooltip>
+        )}
         {graph && (
           <Tooltip label="Random word">
             <button
