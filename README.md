@@ -1,5 +1,7 @@
 # kanji-graph
 
+<p align="center"><img src="public/favicon.svg" width="64" height="64" alt="kanji-graph logo" /></p>
+
 Interactive web tool for visualizing connections between Japanese words you've learned. Words are linked by shared kanji, identical readings, or visually similar kanji. Personal study/revision aid built as a single-page static site.
 
 ---
