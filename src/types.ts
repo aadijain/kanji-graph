@@ -17,6 +17,19 @@ export interface WordNode {
   fy?: number;
 }
 
+// Represents a group of hidden connections via a high-frequency kanji.
+// `kanji` is the character present in the subject word (used for hover-dim matching).
+// `partnerKanji` is set for similar-kanji entries: the confusable character displayed in the panel.
+// `words` lists the word IDs that belong to this side of the connection.
+// `perWordCount` is how many hidden connections each word in `words` has via this entry.
+export interface HighFreqConnection {
+  type: "shared-kanji" | "similar-kanji";
+  kanji: string;
+  partnerKanji?: string;
+  words: string[];
+  perWordCount: number;
+}
+
 export interface Edge {
   source: string | WordNode;
   target: string | WordNode;
@@ -27,7 +40,8 @@ export interface Edge {
 export interface GraphData {
   nodes: WordNode[];
   edges: Edge[];
-  stats: { words: number; edges: number; kanji: number };
+  stats: { words: number; edges: number; kanji: number; hiddenEdges?: Partial<Record<string, number>> };
+  highFreqConnections?: HighFreqConnection[];
   generatedAt: string;
 }
 

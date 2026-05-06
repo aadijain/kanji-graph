@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import type { Edge } from "../types";
+import type { Edge, HighFreqConnection } from "../types";
 import { EDGE_TYPE_META } from "../lib/constants";
 import { endpointId } from "../types";
 
@@ -21,12 +21,21 @@ export default function StatsBar() {
   const focusedByType = useMemo(() => {
     if (!focused || !graph) return null;
     const counts: Record<string, number> = {};
+    const regularNeighbors = new Set<string>();
     for (const e of graph.edges as Edge[]) {
       const s = endpointId(e.source);
       const t = endpointId(e.target);
-      if (s === focused.id || t === focused.id) {
-        counts[e.type] = (counts[e.type] ?? 0) + 1;
-      }
+      if (s === focused.id) { counts[e.type] = (counts[e.type] ?? 0) + 1; regularNeighbors.add(t); }
+      else if (t === focused.id) { counts[e.type] = (counts[e.type] ?? 0) + 1; regularNeighbors.add(s); }
+    }
+    for (const c of (graph.highFreqConnections ?? []) as HighFreqConnection[]) {
+      if (!c.words.includes(focused.id)) continue;
+      // shared-kanji: exact count using words list minus already-visible neighbors
+      // similar-kanji: perWordCount is exact (entire pair was suppressed, no regular edges exist)
+      const hidden = c.type === "shared-kanji"
+        ? c.words.filter((id) => id !== focused.id && !regularNeighbors.has(id)).length
+        : c.perWordCount;
+      counts[c.type] = (counts[c.type] ?? 0) + hidden;
     }
     return counts;
   }, [focused, graph]);
@@ -72,7 +81,9 @@ export default function StatsBar() {
             {EDGE_TYPES.map((t, i) => (
               <span key={t}>
                 {i > 0 && <span className="text-ink-600"> · </span>}
-                <span style={{ color: edgeColors[t] }}>{globalByType[t] ?? 0}</span>
+                <span style={{ color: edgeColors[t] }}>
+                  {(globalByType[t] ?? 0) + (graph.stats.hiddenEdges?.[t] ?? 0)}
+                </span>
                 {" "}{EDGE_TYPE_META[t].label}
               </span>
             ))}

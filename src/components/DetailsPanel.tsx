@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import { endpointId, type Edge } from "../types";
+import { endpointId, type Edge, type HighFreqConnection } from "../types";
 import { playPronunciation } from "../lib/audio";
 
 function SpeakerIcon({ className }: { className?: string }) {
@@ -59,7 +59,12 @@ export default function DetailsPanel() {
         }
       }
     }
-    return { byKanji, sameReading, similarByKanji };
+    // High-freq connections: same lookup pattern for both edge types.
+    // `c.kanji` is the character in this word (dim key); display is `c.partnerKanji ?? c.kanji`.
+    const highFreq = (graph.highFreqConnections ?? []).filter((c: HighFreqConnection) =>
+      c.words.includes(subject.id),
+    );
+    return { byKanji, sameReading, similarByKanji, highFreq };
   }, [subject, graph]);
 
   if (!subject) return null;
@@ -97,13 +102,13 @@ export default function DetailsPanel() {
         {subject.frequency != null && <span>rank #{subject.frequency}</span>}
       </div>
 
-      {connections && connections.byKanji.size > 0 && (
+      {connections && (connections.byKanji.size > 0 || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">
             shared kanji
           </div>
           <div className="mt-2 space-y-2">
-            {[...connections.byKanji.entries()].map(([k, others]) => {
+            {[...connections.byKanji.entries()].filter(([, others]) => others.length > 0).map(([k, others]) => {
               const dim = (!!hoveredKanji && hoveredKanji !== k) || hoveredReading;
               return (
                 <div
@@ -123,11 +128,23 @@ export default function DetailsPanel() {
                 </div>
               );
             })}
+            {connections.highFreq.filter((c) => c.type === "shared-kanji").map((c) => {
+              const dim = (!!hoveredKanji && hoveredKanji !== c.kanji) || hoveredReading;
+              return (
+                <div
+                  key={`hf-${c.kanji}`}
+                  className={`flex items-start gap-3 transition-opacity ${dim ? "opacity-30" : "opacity-100"}`}
+                >
+                  <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["shared-kanji"] }}>{c.kanji}</div>
+                  <div className="text-sm text-ink-500">(hidden)</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {connections && connections.similarByKanji.size > 0 && (
+      {connections && (connections.similarByKanji.size > 0 || connections.highFreq.some((c) => c.type === "similar-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">
             similar kanji
@@ -146,6 +163,18 @@ export default function DetailsPanel() {
                   <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-ink-100">
                     {others.map((o) => <span key={o}>{o}</span>)}
                   </div>
+                </div>
+              );
+            })}
+            {connections.highFreq.filter((c) => c.type === "similar-kanji").map((c) => {
+              const dim = (!!hoveredKanji && hoveredKanji !== c.kanji) || hoveredReading;
+              return (
+                <div
+                  key={`hf-${c.kanji}-${c.partnerKanji}`}
+                  className={`flex items-start gap-3 transition-opacity ${dim ? "opacity-30" : "opacity-100"}`}
+                >
+                  <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["similar-kanji"] }}>{c.partnerKanji}</div>
+                  <div className="text-sm text-ink-500">(hidden)</div>
                 </div>
               );
             })}
