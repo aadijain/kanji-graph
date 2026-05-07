@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import type { DictionarySource, WordEntry } from "./source.ts";
-import { JITENDEX_SHARED_SUBPATH, JITENDEX_LOCAL_SUBPATH, MAX_GLOSSES } from "../constants.ts";
+import { JITENDEX_SHARED_SUBPATH, JITENDEX_LOCAL_SUBPATH, MAX_GLOSSES, MIN_ENTRY_SCORE } from "../constants.ts";
 
 // Yomitan term-bank row layout (v3):
 // [expression, reading, definitionTags, rules, score, glossary, sequence, termTags]
@@ -193,7 +193,8 @@ class JitendexSource implements DictionarySource {
         b.glossCount !== a.glossCount ? b.glossCount - a.glossCount :
         a.seq - b.seq
       );
-      const entries: WordEntry[] = candidates.map(({ key }) => {
+      const filtered = candidates.filter((c, i) => i === 0 || c.score >= MIN_ENTRY_SCORE);
+      const entries: WordEntry[] = filtered.map(({ key }) => {
         const c = bySeq.get(key)!;
         return { word: expression, reading: c.reading, glosses: c.glosses.slice(0, MAX_GLOSSES), jlpt: c.jlpt };
       });

@@ -33,6 +33,13 @@ export const JPDB_FREQ_SHARED_SUBPATH = ".local/share/japanese-dicts/jpdb-freq-l
 // eliminates synonym bloat; this cap handles highly polysemous words (e.g. 掛ける).
 export const MAX_GLOSSES = 5;
 
+// Minimum JMdict priority score for secondary entries. Entries with score >= 1
+// carry at least one priority tag (news1/ichi1/spec1/etc) and represent real
+// common readings. Score=0 entries are valid but rare/archaic readings that add
+// noise to same-reading edge matching (e.g. と for 人, ぎょ for 御).
+// entries[0] is always kept regardless of score as a fallback for obscure words.
+export const MIN_ENTRY_SCORE = 1;
+
 // ── Edge filtering ───────────────────────────────────────────────────────────
 
 // Shared-kanji edges are skipped for any kanji that appears in more than this
