@@ -22,9 +22,10 @@ const FOCUS_MODE = [
 ] as const;
 
 const EDGE_TYPE_DESCS = [
-  { type: "shared-kanji"  as const, label: "shared kanji",  desc: "words share one or more kanji characters" },
-  { type: "similar-kanji" as const, label: "similar kanji", desc: "words contain visually similar or commonly confused kanji" },
-  { type: "same-reading"  as const, label: "same reading",  desc: "words share a kana reading" },
+  { type: "shared-kanji"      as const, label: "shared kanji",      desc: "words share one or more kanji characters" },
+  { type: "similar-kanji"     as const, label: "similar kanji",     desc: "words contain visually similar or commonly confused kanji" },
+  { type: "same-reading"      as const, label: "same reading",      desc: "words share a kana reading" },
+  { type: "alternate-spelling" as const, label: "alternate spelling", desc: "same word written with different kanji or kana" },
 ];
 
 function InteractionTable({ rows }: { rows: readonly (readonly [string, string])[] }) {

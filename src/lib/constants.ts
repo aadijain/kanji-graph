@@ -57,9 +57,10 @@ export const LIGHT_NODE_COLORS = {
 // the canvas palette base. Canvas active/muted/ambient are computed dynamically
 // from the user's chosen color via hexToRgba, so only label + hex live here.
 export const EDGE_TYPE_META: Record<EdgeType, { label: string; hex: string }> = {
-  "shared-kanji": { label: "shared kanji", hex: "#d4a857" },
-  "similar-kanji": { label: "similar kanji", hex: "#a880d4" },
-  "same-reading":  { label: "same reading",  hex: "#7aa8d9" },
+  "shared-kanji":      { label: "shared kanji",      hex: "#d4a857" },
+  "similar-kanji":     { label: "similar kanji",     hex: "#a880d4" },
+  "same-reading":      { label: "same reading",      hex: "#7aa8d9" },
+  "alternate-spelling": { label: "alternate spelling", hex: "#d97a82" },
 };
 
 // Curated swatch palette for edge color selection (matches accent.* in tailwind.config.js).

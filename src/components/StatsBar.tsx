@@ -4,7 +4,7 @@ import type { Edge, HighFreqConnection } from "../types";
 import { EDGE_TYPE_META } from "../lib/constants";
 import { endpointId } from "../types";
 
-const EDGE_TYPES = ["shared-kanji", "similar-kanji", "same-reading"] as const;
+const EDGE_TYPES = ["shared-kanji", "similar-kanji", "same-reading", "alternate-spelling"] as const;
 
 export default function StatsBar() {
   const graph = useStore((s) => s.graph);

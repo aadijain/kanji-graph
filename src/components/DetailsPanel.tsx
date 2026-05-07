@@ -62,6 +62,8 @@ export default function DetailsPanel() {
     for (const k of subject.kanji) byKanji.set(k, []);
     const sameReadingSet = new Set<string>();
     const sameReading: string[] = [];
+    const altSpellingSet = new Set<string>();
+    const alternateSpellings: string[] = [];
     // key: neighbor kanji (K2); value: subject-side kanji (K1) + neighbor words
     const similarByKanji = new Map<string, { subjectKanji: string; others: string[] }>();
     for (const e of graph.edges as Edge[]) {
@@ -73,6 +75,8 @@ export default function DetailsPanel() {
         for (const k of e.via) if (byKanji.has(k)) byKanji.get(k)!.push(other);
       } else if (e.type === "same-reading") {
         if (!sameReadingSet.has(other)) { sameReadingSet.add(other); sameReading.push(other); }
+      } else if (e.type === "alternate-spelling") {
+        if (!altSpellingSet.has(other)) { altSpellingSet.add(other); alternateSpellings.push(other); }
       } else if (e.type === "similar-kanji") {
         const subjectKanji = e.via.find((k) => subject.kanji.includes(k));
         for (const k of e.via) {
@@ -89,7 +93,7 @@ export default function DetailsPanel() {
     const highFreq = (graph.highFreqConnections ?? []).filter((c: HighFreqConnection) =>
       c.words.includes(subject.id),
     );
-    return { byKanji, sameReading, similarByKanji, highFreq };
+    return { byKanji, sameReading, similarByKanji, highFreq, alternateSpellings };
   }, [subject, graph]);
 
   if (!subject) return null;
@@ -250,6 +254,18 @@ export default function DetailsPanel() {
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
                style={{ color: edgeColors["same-reading"] }}>
             {connections.sameReading.map((o) => <span key={o}>{o}</span>)}
+          </div>
+        </div>
+      )}
+
+      {connections && connections.alternateSpellings.length > 0 && (
+        <div className={`mt-4 border-t border-ink-700 pt-3 transition-opacity ${hoveredKanji ? "opacity-30" : "opacity-100"}`}>
+          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+            alternate spelling
+          </div>
+          <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
+               style={{ color: edgeColors["alternate-spelling"] }}>
+            {connections.alternateSpellings.map((o) => <span key={o}>{o}</span>)}
           </div>
         </div>
       )}

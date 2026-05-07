@@ -30,7 +30,7 @@ const isKanji = (ch: string) => KANJI_RE.test(ch);
 const kanjiOf = (word: string) => [...word].filter(isKanji);
 
 type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
-type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji";
+type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji" | "alternate-spelling";
 type Edge = { source: string; target: string; type: EdgeType; via: string[] };
 type HighFreqConn = {
   type: "shared-kanji" | "similar-kanji";
@@ -250,6 +250,31 @@ function buildSimilarKanjiEdges(
   }));
 }
 
+function buildAlternateSpellingEdges(nodes: WordNode[]): Edge[] {
+  const groups = new Map<string, WordNode[]>();
+  for (const node of nodes) {
+    const primary = node.entries[0];
+    const key = `${primary.reading}\0${primary.glosses.slice(0, 3).join("|")}`;
+    const arr = groups.get(key) ?? [];
+    arr.push(node);
+    groups.set(key, arr);
+  }
+  const edges: Edge[] = [];
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const [a, b] = [group[i].id, group[j].id].sort();
+        edges.push({ source: a, target: b, type: "alternate-spelling", via: [group[i].entries[0].reading] });
+      }
+    }
+  }
+  if (edges.length) {
+    console.log(`[build-graph] alternate-spelling pairs: ${edges.map((e) => `${e.source}/${e.target}`).join(", ")}`);
+  }
+  return edges;
+}
+
 // Builds HighFreqConn entries for both shared-kanji and similar-kanji types.
 // For shared-kanji: one entry per high-freq kanji (kanji = display kanji).
 // For similar-kanji: two entries per pair (one for each side), so each word
@@ -334,11 +359,14 @@ async function main() {
 
   const { byKanji, highFreqKanjiSet } = buildKanjiIndex(nodes);
   const similar = loadSimilarKanji(resolve(ROOT, SIMILAR_KANJI_FILE));
-  const sharedEdges = buildSharedKanjiEdges(byKanji);
+  const altEdges = buildAlternateSpellingEdges(nodes);
+  const altPairSet = new Set(altEdges.map((e) => `${e.source} ${e.target}`));
+  const sharedEdges = buildSharedKanjiEdges(byKanji).filter((e) => !altPairSet.has(`${e.source} ${e.target}`));
   const sharedPairSet = new Set(sharedEdges.map((e) => `${e.source} ${e.target}`));
   const edges: Edge[] = [
+    ...altEdges,
     ...sharedEdges,
-    ...buildSameReadingEdges(nodes),
+    ...buildSameReadingEdges(nodes).filter((e) => !altPairSet.has(`${e.source} ${e.target}`)),
     ...buildSimilarKanjiEdges(nodes, similar, highFreqKanjiSet),
   ];
 

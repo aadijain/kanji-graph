@@ -33,7 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   audioAutoPlay: true,
   localAudioEnabled: false,
   audioServerUrl: "",
-  edgeVisibility: { "shared-kanji": true, "same-reading": true, "similar-kanji": true },
+  edgeVisibility: { "shared-kanji": true, "same-reading": true, "similar-kanji": true, "alternate-spelling": true },
   edgeColors: Object.fromEntries(Object.entries(EDGE_TYPE_META).map(([k, v]) => [k, v.hex])) as Record<EdgeType, string>,
   animationSpeed: "normal",
   focusZoom: "normal",

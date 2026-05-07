@@ -1,4 +1,4 @@
-export type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji";
+export type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji" | "alternate-spelling";
 
 export interface WordEntry {
   reading: string;
