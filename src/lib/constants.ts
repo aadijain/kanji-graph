@@ -108,7 +108,7 @@ export const BACK_STRIP_PANEL_LEFT = BACK_STRIP_WIDTH + 16;
 
 // ── Search ────────────────────────────────────────────────────────────────────
 
-export const SEARCH_MAX_RESULTS = 8;
+export const SEARCH_MAX_RESULTS = 12;
 
 // ── Frequency dot sizing (JPDB rank → canvas dot radius) ─────────────────────
 

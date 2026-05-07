@@ -5,8 +5,6 @@ import { deinflect } from "../lib/deinflect";
 import type { WordNode } from "../types";
 import { SEARCH_MAX_RESULTS } from "../lib/constants";
 
-const readingRomaji = (node: WordNode) => toRomaji(node.reading).toLowerCase();
-
 // Return the reading that matched the query: the secondary entry's reading if that's what matched.
 function matchedReading(node: WordNode, q: string, qRomaji: string): string {
   if (node.reading.includes(q) || toRomaji(node.reading).toLowerCase().includes(qRomaji)) return node.reading;
@@ -16,27 +14,56 @@ function matchedReading(node: WordNode, q: string, qRomaji: string): string {
   return match?.reading ?? node.reading;
 }
 
+function allReadings(node: WordNode): string[] {
+  return [...new Set((node.entries ?? []).map((e) => e.reading).filter(Boolean))];
+}
+
 function matchesQuery(node: WordNode, q: string, qRomaji: string, qForms: string[]): boolean {
+  const readings = allReadings(node);
   return (
     node.word.includes(q) ||
-    node.reading.includes(q) ||
-    readingRomaji(node).includes(qRomaji) ||
-    qForms.some((c) => node.word === c) ||
-    (node.entries?.some(
-      (e) => e.reading.includes(q) || toRomaji(e.reading).toLowerCase().includes(qRomaji)
-    ) ?? false)
+    readings.some((r) => r.includes(q)) ||
+    readings.some((r) => toRomaji(r).toLowerCase().includes(qRomaji)) ||
+    qForms.some((c) => node.word === c)
   );
 }
 
-// Lower score = ranked higher.
-// Prefer starts-with over contains; romaji hits rank below direct hits; deinflected matches last.
+// Lower score = ranked higher. Tiers: exact kana > kana starts-with > kana contains >
+// exact romaji > romaji starts-with > romaji contains > deinflected.
+// Romaji exact is split from starts-with so "jin" (=じん) outranks "jin" as prefix of じんせい.
 function resultScore(node: WordNode, q: string, qRomaji: string, qForms: string[]): number {
-  if (node.word.startsWith(q) || node.reading.startsWith(q)) return 0;
-  if (node.word.includes(q) || node.reading.includes(q)) return 1;
-  if (readingRomaji(node).startsWith(qRomaji)) return 2;
-  if (readingRomaji(node).includes(qRomaji)) return 3;
-  if (qForms.some((c) => node.word === c)) return 4;
-  return 5;
+  const readings = allReadings(node);
+  const romajis = readings.map((r) => toRomaji(r).toLowerCase());
+  if (node.word === q || readings.some((r) => r === q)) return 0;
+  if (node.word.startsWith(q) || readings.some((r) => r.startsWith(q))) return 1;
+  if (node.word.includes(q) || readings.some((r) => r.includes(q))) return 2;
+  if (romajis.some((r) => r === qRomaji)) return 3;
+  if (romajis.some((r) => r.startsWith(qRomaji))) return 4;
+  if (romajis.some((r) => r.includes(qRomaji))) return 5;
+  if (qForms.some((c) => node.word === c)) return 6;
+  return 7;
+}
+
+// Index of the highest-score entry whose reading best matches the query.
+// Scans in quality order (exact kana > kana starts-with > kana contains > exact romaji >
+// romaji contains) so the best-quality match wins, and within that the earliest
+// (highest-score) entry index is returned.
+function matchingEntryIdx(node: WordNode, q: string, qRomaji: string): number {
+  const entries = node.entries ?? [];
+  const preds = [
+    (r: string) => r === q,
+    (r: string) => r.startsWith(q),
+    (r: string) => r.includes(q),
+    (r: string) => toRomaji(r).toLowerCase() === qRomaji,
+    (r: string) => toRomaji(r).toLowerCase().includes(qRomaji),
+  ];
+  for (const pred of preds) {
+    for (let i = 0; i < entries.length; i++) {
+      const r = entries[i].reading;
+      if (r && pred(r)) return i;
+    }
+  }
+  return 0;
 }
 
 export default function SearchOverlay({
@@ -57,13 +84,19 @@ export default function SearchOverlay({
   const q = query.trim();
   const qRomaji = q.toLowerCase();
 
-  const results = useMemo(() => {
-    if (!graph || !q) return [];
+  const { results, overflow } = useMemo(() => {
+    if (!graph || !q) return { results: [], overflow: 0 };
     const qForms = deinflect(q).filter((c) => c !== q);
-    return graph.nodes
+    const all = graph.nodes
       .filter((n) => matchesQuery(n, q, qRomaji, qForms))
-      .sort((a, b) => resultScore(a, q, qRomaji, qForms) - resultScore(b, q, qRomaji, qForms))
-      .slice(0, SEARCH_MAX_RESULTS);
+      .sort((a, b) => {
+        const scoreDiff = resultScore(a, q, qRomaji, qForms) - resultScore(b, q, qRomaji, qForms);
+        if (scoreDiff !== 0) return scoreDiff;
+        const entryDiff = matchingEntryIdx(a, q, qRomaji) - matchingEntryIdx(b, q, qRomaji);
+        if (entryDiff !== 0) return entryDiff;
+        return (a.frequency ?? Infinity) - (b.frequency ?? Infinity);
+      });
+    return { results: all.slice(0, SEARCH_MAX_RESULTS), overflow: Math.max(0, all.length - SEARCH_MAX_RESULTS) };
   }, [graph, query]);
 
   useEffect(() => {
@@ -177,7 +210,7 @@ export default function SearchOverlay({
                     i === selectedIdx
                       ? "bg-ink-800 text-ink-100"
                       : "text-ink-400 hover:bg-ink-900"
-                  } ${i === results.length - 1 ? "rounded-b-xl" : ""}`}
+                  } ${i === results.length - 1 && !overflow ? "rounded-b-xl" : ""}`}
                 >
                   <span className="jp text-base font-medium text-ink-100">{node.word}</span>
                   <span className="jp text-xs text-ink-500">{matchedReading(node, q, qRomaji)}</span>
@@ -187,6 +220,9 @@ export default function SearchOverlay({
                 </button>
               </li>
             ))}
+            {overflow > 0 && (
+              <li className="rounded-b-xl px-4 py-2 text-xs text-ink-600">+{overflow} more</li>
+            )}
           </ul>
         )}
       </div>
