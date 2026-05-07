@@ -6,6 +6,7 @@ import { jitendexSource } from "./dict/jitendex.ts";
 import { loadFrequencyMap } from "./dict/freq.ts";
 import type { DictionarySource, WordEntry } from "./dict/source.ts";
 import { KANJI_RE, WORDS_FILE, SIMILAR_KANJI_FILE, GRAPH_OUTPUT, BRIDGE_KANJI_MAX_WORDS } from "./constants.ts";
+import { deinflect } from "../src/lib/deinflect.ts";
 
 function chain(...sources: DictionarySource[]): DictionarySource {
   return {
@@ -56,13 +57,29 @@ function readWordList(path: string): string[] {
 async function lookupAll(words: string[], source: DictionarySource): Promise<WordNode[]> {
   await source.prepare?.();
   const nodes: WordNode[] = [];
+  const seen = new Set<string>(); // dedupe by resolved dictionary form
   const missing: string[] = [];
   for (const w of words) {
-    const entry = await source.lookup(w);
+    let entry = await source.lookup(w);
+    if (!entry) {
+      const candidates = deinflect(w).filter((c) => c !== w);
+      for (const c of candidates) {
+        entry = await source.lookup(c);
+        if (entry) {
+          console.log(`[build-graph] deinflected "${w}" → "${entry.word}"`);
+          break;
+        }
+      }
+    }
     if (!entry) {
       missing.push(w);
       continue;
     }
+    if (seen.has(entry.word)) {
+      console.log(`[build-graph] skipping duplicate "${w}" (resolves to existing "${entry.word}")`);
+      continue;
+    }
+    seen.add(entry.word);
     nodes.push({ ...entry, id: entry.word, kanji: kanjiOf(entry.word) });
   }
   if (missing.length) {
