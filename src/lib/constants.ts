@@ -106,6 +106,14 @@ export const BACK_STRIP_WIDTH = 80;
 // Left offset for panels that must clear the back strip (strip + 16px gap).
 export const BACK_STRIP_PANEL_LEFT = BACK_STRIP_WIDTH + 16;
 
+// ── Focus layout ─────────────────────────────────────────────────────────────
+
+export const FOCUS_LAYOUT_HIGH_N = 14;     // > HIGH_N: split into two concentric rings
+export const FOCUS_LAYOUT_RING_MULT = 1.2; // inner at R/MULT, outer at R*MULT
+// Blend between original angle (0) and evenly-spaced slot (1). Can be made a
+// function of N if needed later.
+export const FOCUS_LAYOUT_BLEND = 0.5;
+
 // ── Search ────────────────────────────────────────────────────────────────────
 
 export const SEARCH_MAX_RESULTS = 12;

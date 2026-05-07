@@ -3,7 +3,7 @@ import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
 import { useStore } from "../store";
 import { endpointId, type Edge, type EdgeType, type WordNode } from "../types";
 import { tween } from "../lib/animation";
-import { radialAround, type XY } from "../lib/layout";
+import { focusLayout, type NeighborSpec, type XY } from "../lib/layout";
 import {
   ANIMATION_MS,
   FOCUS_ZOOM_VALUES,
@@ -300,7 +300,16 @@ export default function Graph() {
         if (nbrs) for (const id of nbrs) focusNeighbors.add(id);
       }
       const neighborNodes = nodes.filter((n) => focusNeighbors.has(n.id));
-      const radial = radialAround(focusNode, neighborNodes, neighborRadius);
+      const neighborSpecs: NeighborSpec[] = neighborNodes.map((n) => ({
+        id: n.id,
+        x: n.x ?? 0,
+        y: n.y ?? 0,
+      }));
+      const radial = focusLayout(
+        { x: focusNode.x ?? 0, y: focusNode.y ?? 0 },
+        neighborSpecs,
+        neighborRadius,
+      );
 
       const targets = new Map<string, XY>();
       targets.set(focused.id, { x: focusNode.x ?? 0, y: focusNode.y ?? 0 });
