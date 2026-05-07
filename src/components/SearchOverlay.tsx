@@ -6,8 +6,16 @@ import type { WordNode } from "../types";
 
 const MAX_RESULTS = 8;
 
-// Pre-normalize a node's reading to romaji for romaji query matching.
 const readingRomaji = (node: WordNode) => toRomaji(node.reading).toLowerCase();
+
+// Return the reading that matched the query: the secondary entry's reading if that's what matched.
+function matchedReading(node: WordNode, q: string, qRomaji: string): string {
+  if (node.reading.includes(q) || toRomaji(node.reading).toLowerCase().includes(qRomaji)) return node.reading;
+  const match = node.entries?.find(
+    (e) => e.reading.includes(q) || toRomaji(e.reading).toLowerCase().includes(qRomaji)
+  );
+  return match?.reading ?? node.reading;
+}
 
 function matchesQuery(node: WordNode, q: string, qRomaji: string, qForms: string[]): boolean {
   return (
@@ -47,11 +55,11 @@ export default function SearchOverlay({
   const [selectedIdx, setSelectedIdx] = useState(0);
   const active = open || query.length > 0;
 
+  const q = query.trim();
+  const qRomaji = q.toLowerCase();
+
   const results = useMemo(() => {
-    if (!graph || !query) return [];
-    const q = query.trim();
-    if (!q) return [];
-    const qRomaji = q.toLowerCase();
+    if (!graph || !q) return [];
     const qForms = deinflect(q).filter((c) => c !== q);
     return graph.nodes
       .filter((n) => matchesQuery(n, q, qRomaji, qForms))
@@ -173,7 +181,7 @@ export default function SearchOverlay({
                   } ${i === results.length - 1 ? "rounded-b-xl" : ""}`}
                 >
                   <span className="jp text-base font-medium text-ink-100">{node.word}</span>
-                  <span className="jp text-xs text-ink-500">{node.reading}</span>
+                  <span className="jp text-xs text-ink-500">{matchedReading(node, q, qRomaji)}</span>
                   {node.glosses[0] && (
                     <span className="truncate text-xs text-ink-600">{node.glosses[0]}</span>
                   )}

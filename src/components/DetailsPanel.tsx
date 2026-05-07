@@ -33,7 +33,23 @@ export default function DetailsPanel() {
 
   const subject = hovered ?? focused;
 
-  useEffect(() => { setEntryIdx(0); }, [subject?.id]);
+  useEffect(() => {
+    if (subject && focused && subject.id !== focused.id && graph) {
+      const edge = (graph.edges as Edge[]).find((e) => {
+        const s = endpointId(e.source);
+        const t = endpointId(e.target);
+        return e.type === "same-reading" &&
+          ((s === subject.id && t === focused.id) || (s === focused.id && t === subject.id));
+      });
+      if (edge) {
+        const idx = (subject.entries ?? []).findIndex((e) => e.reading === edge.via[0]);
+        setEntryIdx(idx >= 0 ? idx : 0);
+        return;
+      }
+    }
+    setEntryIdx(0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subject?.id]);
 
   const connections = useMemo(() => {
     if (!subject || !graph) return null;
