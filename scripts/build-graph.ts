@@ -7,6 +7,7 @@ import { loadFrequencyMap } from "./dict/freq.ts";
 import type { DictionarySource, WordEntry } from "./dict/source.ts";
 import { KANJI_RE, WORDS_FILE, SIMILAR_KANJI_FILE, GRAPH_OUTPUT, BRIDGE_KANJI_MAX_WORDS } from "./constants.ts";
 import { deinflect } from "../src/lib/deinflect.ts";
+import type { EdgeType } from "../src/types.ts";
 
 function chain(...sources: DictionarySource[]): DictionarySource {
   return {
@@ -30,7 +31,6 @@ const isKanji = (ch: string) => KANJI_RE.test(ch);
 const kanjiOf = (word: string) => [...word].filter(isKanji);
 
 type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
-type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji" | "alternate-spelling";
 type Edge = { source: string; target: string; type: EdgeType; via: string[] };
 type HighFreqConn = {
   type: "shared-kanji" | "similar-kanji";

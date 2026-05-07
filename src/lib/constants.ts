@@ -53,14 +53,14 @@ export const LIGHT_NODE_COLORS = {
   background:    "#f8f9fa",
 };
 
-// Per edge-type metadata. `hex` is the default color used in UI chrome and as
-// the canvas palette base. Canvas active/muted/ambient are computed dynamically
-// from the user's chosen color via hexToRgba, so only label + hex live here.
-export const EDGE_TYPE_META: Record<EdgeType, { label: string; hex: string }> = {
-  "shared-kanji":      { label: "shared kanji",      hex: "#d4a857" },
-  "similar-kanji":     { label: "similar kanji",     hex: "#a880d4" },
-  "same-reading":      { label: "same reading",      hex: "#7aa8d9" },
-  "alternate-spelling": { label: "alternate spelling", hex: "#d97a82" },
+// Per edge-type metadata. `hex` is the default color; `desc` is the user-facing description.
+// Canvas active/muted/ambient variants are computed from the user's chosen color via hexToRgba.
+// This is the single source of truth for all edge-type lists -- derive from it, don't duplicate.
+export const EDGE_TYPE_META: Record<EdgeType, { label: string; hex: string; desc: string }> = {
+  "shared-kanji":      { label: "shared kanji",      hex: "#d4a857", desc: "words share one or more kanji characters" },
+  "similar-kanji":     { label: "similar kanji",     hex: "#a880d4", desc: "words contain visually similar or commonly confused kanji" },
+  "same-reading":      { label: "same reading",      hex: "#7aa8d9", desc: "words share a kana reading" },
+  "alternate-spelling": { label: "alternate spelling", hex: "#d97a82", desc: "same word written with different kanji or kana" },
 };
 
 // Curated swatch palette for edge color selection (matches accent.* in tailwind.config.js).

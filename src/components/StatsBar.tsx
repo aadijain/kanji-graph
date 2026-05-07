@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../store";
-import type { Edge, HighFreqConnection } from "../types";
+import type { Edge, EdgeType, HighFreqConnection } from "../types";
 import { EDGE_TYPE_META } from "../lib/constants";
 import { endpointId } from "../types";
 
-const EDGE_TYPES = ["shared-kanji", "similar-kanji", "same-reading", "alternate-spelling"] as const;
+const EDGE_TYPES = Object.keys(EDGE_TYPE_META) as EdgeType[];
 
 export default function StatsBar() {
   const graph = useStore((s) => s.graph);

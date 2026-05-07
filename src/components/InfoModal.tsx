@@ -1,5 +1,6 @@
 import { useStore } from "../store";
-import { hexToRgba } from "../lib/constants";
+import { hexToRgba, EDGE_TYPE_META } from "../lib/constants";
+import type { EdgeType } from "../types";
 
 interface Props {
   onClose: () => void;
@@ -21,12 +22,6 @@ const FOCUS_MODE = [
   ["Left edge / Esc", "Return to graph view"],
 ] as const;
 
-const EDGE_TYPE_DESCS = [
-  { type: "shared-kanji"      as const, label: "shared kanji",      desc: "words share one or more kanji characters" },
-  { type: "similar-kanji"     as const, label: "similar kanji",     desc: "words contain visually similar or commonly confused kanji" },
-  { type: "same-reading"      as const, label: "same reading",      desc: "words share a kana reading" },
-  { type: "alternate-spelling" as const, label: "alternate spelling", desc: "same word written with different kanji or kana" },
-];
 
 function InteractionTable({ rows }: { rows: readonly (readonly [string, string])[] }) {
   return (
@@ -100,15 +95,15 @@ export default function InfoModal({ onClose }: Props) {
         <div className="mt-4">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">Edge types</div>
           <div className="mt-1.5 space-y-2">
-            {EDGE_TYPE_DESCS.map((e) => (
-              <div key={e.label} className="flex items-start gap-3">
+            {(Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][]).map(([type, { label, desc }]) => (
+              <div key={type} className="flex items-start gap-3">
                 <span
                   className="mt-[5px] inline-block h-px w-5 shrink-0"
-                  style={{ background: hexToRgba(edgeColors[e.type], 0.9) }}
+                  style={{ background: hexToRgba(edgeColors[type], 0.9) }}
                 />
                 <div>
-                  <div className="text-sm text-ink-100">{e.label}</div>
-                  <div className="text-[11px] text-ink-500">{e.desc}</div>
+                  <div className="text-sm text-ink-100">{label}</div>
+                  <div className="text-[11px] text-ink-500">{desc}</div>
                 </div>
               </div>
             ))}
