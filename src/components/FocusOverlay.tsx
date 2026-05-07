@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { KANJI_RE, BACK_STRIP_WIDTH } from "../lib/constants";
+import { playPronunciation } from "../lib/audio";
 
 function BackEdge({ onClick }: { onClick: () => void }) {
   return (
@@ -30,7 +31,9 @@ export default function FocusOverlay() {
   const setHoveredReading = useStore((s) => s.setHoveredReading);
   const transitioning = useStore((s) => s.transitioning);
   const edgeColors = useStore((s) => s.settings.edgeColors);
+  const audioAutoPlay = useStore((s) => s.settings.audioAutoPlay);
   const wordRef = useRef<HTMLDivElement>(null);
+  const playingRef = useRef(false);
 
   // Anchor the word block to the focused node's live screen position.
   // Graph.tsx publishes a getter via the store; we update transform each frame
@@ -102,7 +105,14 @@ export default function FocusOverlay() {
             return (
               <span
                 key={i}
-                onClick={() => setFocusedEntryIdx(i)}
+                onClick={() => {
+                  if (i === activeIdx) return;
+                  setFocusedEntryIdx(i);
+                  if (audioAutoPlay && !playingRef.current) {
+                    playingRef.current = true;
+                    playPronunciation(focused.word, e.reading).finally(() => { playingRef.current = false; });
+                  }
+                }}
                 onMouseEnter={() => setHoveredReading(true)}
                 onMouseLeave={() => setHoveredReading(false)}
                 className={`cursor-pointer text-sm transition duration-150 ${isActive ? "" : "text-ink-500 hover:text-ink-300"}`}

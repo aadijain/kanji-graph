@@ -30,6 +30,7 @@ export default function DetailsPanel() {
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const hoveredReading = useStore((s) => s.hoveredReading);
   const edgeColors = useStore((s) => s.settings.edgeColors);
+  const audioAutoPlay = useStore((s) => s.settings.audioAutoPlay);
   const [playing, setPlaying] = useState(false);
   const [neighborEntryIdx, setNeighborEntryIdx] = useState(0);
 
@@ -102,6 +103,11 @@ export default function DetailsPanel() {
     const next = Math.min(entries.length - 1, Math.max(0, clampedIdx + delta));
     if (isFocusedSubject) setFocusedEntryIdx(next);
     else setNeighborEntryIdx(next);
+    const nextEntry = entries[next];
+    if (audioAutoPlay && !playing && nextEntry) {
+      setPlaying(true);
+      playPronunciation(subject.word, nextEntry.reading).finally(() => setPlaying(false));
+    }
   };
 
   return (
