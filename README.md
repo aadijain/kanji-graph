@@ -6,7 +6,24 @@ Interactive web tool for visualizing connections between Japanese words you've l
 
 ---
 
-<!-- screenshots / demo GIFs go here -->
+<table align="center" width="100%"><tr>
+  <td align="center" width="50%">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/graph_dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="docs/graph_light.png">
+      <img src="docs/graph_dark.png" alt="Graph view">
+    </picture>
+  </td>
+  <td align="center" width="50%">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/字_dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="docs/字_light.png">
+      <img src="docs/字_dark.png" alt="Word view">
+    </picture>
+  </td>
+</tr></table>
+
+<p align="center"><a href="docs/">More screenshots</a></p>
 
 ---
 
