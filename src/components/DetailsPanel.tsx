@@ -24,17 +24,21 @@ function SpeakerIcon({ className }: { className?: string }) {
 export default function DetailsPanel() {
   const hovered = useStore((s) => s.hovered);
   const focused = useStore((s) => s.focused);
+  const focusedEntryIdx = useStore((s) => s.focusedEntryIdx);
+  const setFocusedEntryIdx = useStore((s) => s.setFocusedEntryIdx);
   const graph = useStore((s) => s.graph);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const hoveredReading = useStore((s) => s.hoveredReading);
   const edgeColors = useStore((s) => s.settings.edgeColors);
   const [playing, setPlaying] = useState(false);
-  const [entryIdx, setEntryIdx] = useState(0);
+  const [neighborEntryIdx, setNeighborEntryIdx] = useState(0);
 
   const subject = hovered ?? focused;
+  const isFocusedSubject = subject?.id === focused?.id;
 
+  // For neighbors: auto-select the entry matching the same-reading edge to focused.
   useEffect(() => {
-    if (subject && focused && subject.id !== focused.id && graph) {
+    if (!isFocusedSubject && subject && focused && graph) {
       const edge = (graph.edges as Edge[]).find((e) => {
         const s = endpointId(e.source);
         const t = endpointId(e.target);
@@ -43,11 +47,11 @@ export default function DetailsPanel() {
       });
       if (edge) {
         const idx = (subject.entries ?? []).findIndex((e) => e.reading === edge.via[0]);
-        setEntryIdx(idx >= 0 ? idx : 0);
+        setNeighborEntryIdx(idx >= 0 ? idx : 0);
         return;
       }
     }
-    setEntryIdx(0);
+    setNeighborEntryIdx(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subject?.id]);
 
@@ -90,8 +94,15 @@ export default function DetailsPanel() {
   if (!subject) return null;
 
   const entries = subject.entries ?? [{ reading: subject.reading, glosses: subject.glosses, jlpt: subject.jlpt }];
-  const clampedIdx = Math.min(entryIdx, entries.length - 1);
+  const rawIdx = isFocusedSubject ? focusedEntryIdx : neighborEntryIdx;
+  const clampedIdx = Math.min(rawIdx, entries.length - 1);
   const entry = entries[clampedIdx];
+
+  const navEntry = (delta: number) => {
+    const next = Math.min(entries.length - 1, Math.max(0, clampedIdx + delta));
+    if (isFocusedSubject) setFocusedEntryIdx(next);
+    else setNeighborEntryIdx(next);
+  };
 
   return (
     <div className="absolute right-6 top-6 w-96 rounded-lg border border-ink-700 bg-ink-900 p-4 shadow-xl">
@@ -120,7 +131,7 @@ export default function DetailsPanel() {
               type="button"
               aria-label="Previous entry"
               disabled={clampedIdx === 0}
-              onClick={() => setEntryIdx((i) => Math.max(0, i - 1))}
+              onClick={() => navEntry(-1)}
               className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
             >&lt;</button>
             <span>{clampedIdx + 1}/{entries.length}</span>
@@ -128,7 +139,7 @@ export default function DetailsPanel() {
               type="button"
               aria-label="Next entry"
               disabled={clampedIdx === entries.length - 1}
-              onClick={() => setEntryIdx((i) => Math.min(entries.length - 1, i + 1))}
+              onClick={() => navEntry(1)}
               className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
             >&gt;</button>
           </div>

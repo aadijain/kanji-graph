@@ -7,6 +7,7 @@ interface AppState {
   graph: GraphData | null;
   hovered: WordNode | null;
   focused: WordNode | null;
+  focusedEntryIdx: number;
   focusHistory: WordNode[];
   hoveredKanji: string | null;
   hoveredReading: boolean;
@@ -20,6 +21,7 @@ interface AppState {
   setGraph: (g: GraphData) => void;
   setHovered: (n: WordNode | null) => void;
   setFocused: (n: WordNode | null) => void;
+  setFocusedEntryIdx: (idx: number) => void;
   rewindFocusHistory: (idx: number) => void;
   setHoveredKanji: (k: string | null) => void;
   setHoveredReading: (v: boolean) => void;
@@ -34,6 +36,7 @@ export const useStore = create<AppState>((set) => ({
   graph: null,
   hovered: null,
   focused: null,
+  focusedEntryIdx: 0,
   focusHistory: [],
   hoveredKanji: null,
   hoveredReading: false,
@@ -46,12 +49,12 @@ export const useStore = create<AppState>((set) => ({
   setHovered: (n) => set({ hovered: n }),
   setFocused: (n) =>
     set((state) => {
-      if (!n) return { focused: null, focusHistory: [], hoveredKanji: null, hoveredReading: false };
+      if (!n) return { focused: null, focusedEntryIdx: 0, focusHistory: [], hoveredKanji: null, hoveredReading: false };
       const prev = state.focusHistory;
-      // Don't duplicate if re-focusing the same word.
-      if (prev[prev.length - 1]?.id === n.id) return { focused: n, hoveredKanji: null, hoveredReading: false };
-      return { focused: n, focusHistory: [...prev, n].slice(-FOCUS_HISTORY_MAX), hoveredKanji: null, hoveredReading: false };
+      if (prev[prev.length - 1]?.id === n.id) return { focused: n, focusedEntryIdx: 0, hoveredKanji: null, hoveredReading: false };
+      return { focused: n, focusedEntryIdx: 0, focusHistory: [...prev, n].slice(-FOCUS_HISTORY_MAX), hoveredKanji: null, hoveredReading: false };
     }),
+  setFocusedEntryIdx: (idx) => set({ focusedEntryIdx: idx }),
   rewindFocusHistory: (idx) =>
     set((state) => {
       const word = state.focusHistory[idx];

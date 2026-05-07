@@ -22,6 +22,8 @@ function BackEdge({ onClick }: { onClick: () => void }) {
 export default function FocusOverlay() {
   const focused = useStore((s) => s.focused);
   const setFocused = useStore((s) => s.setFocused);
+  const focusedEntryIdx = useStore((s) => s.focusedEntryIdx);
+  const setFocusedEntryIdx = useStore((s) => s.setFocusedEntryIdx);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const setHoveredKanji = useStore((s) => s.setHoveredKanji);
   const hoveredReading = useStore((s) => s.hoveredReading);
@@ -55,6 +57,8 @@ export default function FocusOverlay() {
   if (!focused) return null;
 
   const chars = [...focused.word];
+  const entries = focused.entries ?? [{ reading: focused.reading }];
+  const activeIdx = Math.min(focusedEntryIdx, entries.length - 1);
 
   return (
     <div
@@ -92,13 +96,22 @@ export default function FocusOverlay() {
             );
           })}
         </div>
-        <div
-          className="jp mt-3 cursor-pointer text-sm transition duration-150"
-          style={{ color: hoveredReading ? edgeColors["same-reading"] : undefined }}
-          onMouseEnter={() => setHoveredReading(true)}
-          onMouseLeave={() => setHoveredReading(false)}
-        >
-          {focused.reading}
+        <div className="jp mt-3 flex flex-col items-center gap-0.5">
+          {entries.map((e, i) => {
+            const isActive = i === activeIdx;
+            return (
+              <span
+                key={i}
+                onClick={() => setFocusedEntryIdx(i)}
+                onMouseEnter={() => setHoveredReading(true)}
+                onMouseLeave={() => setHoveredReading(false)}
+                className={`cursor-pointer text-sm transition duration-150 ${isActive ? "" : "text-ink-500 hover:text-ink-300"}`}
+                style={isActive ? { color: hoveredReading ? edgeColors["same-reading"] : undefined } : undefined}
+              >
+                {e.reading}
+              </span>
+            );
+          })}
         </div>
       </div>
     </div>
