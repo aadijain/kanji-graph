@@ -200,6 +200,33 @@ export default function Graph() {
     return { nodes, links: graph.edges as Edge[] };
   }, [graph]);
 
+  // Curvature for parallel edges (same word-pair, different type) so they don't overlap.
+  const edgeCurvature = useMemo(() => {
+    const typePriority: Edge["type"][] = ["shared-kanji", "similar-kanji", "same-reading"];
+    const pairMap = new Map<string, Edge[]>();
+    for (const e of graph.edges as Edge[]) {
+      const s = endpointId(e.source);
+      const t = endpointId(e.target);
+      const key = s < t ? `${s}|${t}` : `${t}|${s}`;
+      if (!pairMap.has(key)) pairMap.set(key, []);
+      pairMap.get(key)!.push(e);
+    }
+    const curvMap = new Map<Edge, number>();
+    for (const edges of pairMap.values()) {
+      if (edges.length === 1) {
+        curvMap.set(edges[0], 0);
+      } else {
+        const sorted = [...edges].sort(
+          (a, b) => typePriority.indexOf(a.type) - typePriority.indexOf(b.type)
+        );
+        const step = 0.12;
+        const start = -((sorted.length - 1) * step) / 2;
+        sorted.forEach((e, i) => curvMap.set(e, start + i * step));
+      }
+    }
+    return curvMap;
+  }, [graph.edges]);
+
   // Adjacency index keyed by edge type, built once per graph load.
   // Replaces O(E) edge scans in neighbors, onNodeHover, and the focus tween.
   const adjByType = useMemo(() => {
@@ -683,6 +710,7 @@ export default function Graph() {
         if (!hoveredId) return 0.4;
         return s === hoveredId || t === hoveredId ? 1.4 : 0;
       }}
+      linkCurvature={(link) => edgeCurvature.get(link as Edge) ?? 0}
       onLinkClick={(link) => {
         if (!focused) return;
         const l = link as Edge;
