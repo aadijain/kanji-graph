@@ -29,7 +29,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isKanji = (ch: string) => KANJI_RE.test(ch);
 const kanjiOf = (word: string) => [...word].filter(isKanji);
 
-type WordNode = WordEntry & { id: string; kanji: string[] };
+type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
 type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji";
 type Edge = { source: string; target: string; type: EdgeType; via: string[] };
 type HighFreqConn = {
@@ -60,27 +60,28 @@ async function lookupAll(words: string[], source: DictionarySource): Promise<Wor
   const seen = new Set<string>(); // dedupe by resolved dictionary form
   const missing: string[] = [];
   for (const w of words) {
-    let entry = await source.lookup(w);
-    if (!entry) {
+    let entries = await source.lookup(w);
+    if (!entries) {
       const candidates = deinflect(w).filter((c) => c !== w);
       for (const c of candidates) {
-        entry = await source.lookup(c);
-        if (entry) {
-          console.log(`[build-graph] deinflected "${w}" → "${entry.word}"`);
+        entries = await source.lookup(c);
+        if (entries) {
+          console.log(`[build-graph] deinflected "${w}" → "${entries[0].word}"`);
           break;
         }
       }
     }
-    if (!entry) {
+    if (!entries) {
       missing.push(w);
       continue;
     }
-    if (seen.has(entry.word)) {
-      console.log(`[build-graph] skipping duplicate "${w}" (resolves to existing "${entry.word}")`);
+    const primary = entries[0];
+    if (seen.has(primary.word)) {
+      console.log(`[build-graph] skipping duplicate "${w}" (resolves to existing "${primary.word}")`);
       continue;
     }
-    seen.add(entry.word);
-    nodes.push({ ...entry, id: entry.word, kanji: kanjiOf(entry.word) });
+    seen.add(primary.word);
+    nodes.push({ ...primary, id: primary.word, kanji: kanjiOf(primary.word), entries });
   }
   if (missing.length) {
     console.warn(`[build-graph] ${missing.length} missing entirely: ${missing.join(", ")}`);
@@ -141,11 +142,12 @@ function buildSharedKanjiEdges(byKanji: Map<string, string[]>): Edge[] {
 function buildSameReadingEdges(nodes: WordNode[]): Edge[] {
   const byReading = new Map<string, string[]>();
   for (const n of nodes) {
-    const r = n.reading?.trim();
-    if (!r) continue;
-    const arr = byReading.get(r) ?? [];
-    arr.push(n.id);
-    byReading.set(r, arr);
+    const readings = new Set(n.entries.map((e) => e.reading?.trim()).filter(Boolean) as string[]);
+    for (const r of readings) {
+      const arr = byReading.get(r) ?? [];
+      arr.push(n.id);
+      byReading.set(r, arr);
+    }
   }
   const edges: Edge[] = [];
   for (const [reading, ids] of byReading) {

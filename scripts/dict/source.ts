@@ -9,5 +9,5 @@ export interface WordEntry {
 export interface DictionarySource {
   name: string;
   prepare?(): Promise<void>;
-  lookup(word: string): Promise<WordEntry | null>;
+  lookup(word: string): Promise<WordEntry[] | null>;
 }

@@ -14,7 +14,10 @@ function matchesQuery(node: WordNode, q: string, qRomaji: string, qForms: string
     node.word.includes(q) ||
     node.reading.includes(q) ||
     readingRomaji(node).includes(qRomaji) ||
-    qForms.some((c) => node.word === c)
+    qForms.some((c) => node.word === c) ||
+    (node.entries?.some(
+      (e) => e.reading.includes(q) || toRomaji(e.reading).toLowerCase().includes(qRomaji)
+    ) ?? false)
   );
 }
 

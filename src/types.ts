@@ -1,10 +1,17 @@
 export type EdgeType = "shared-kanji" | "same-reading" | "similar-kanji";
 
+export interface WordEntry {
+  reading: string;
+  glosses: string[];
+  jlpt?: number;
+}
+
 export interface WordNode {
   id: string;
   word: string;
   reading: string;
   glosses: string[];
+  entries: WordEntry[];
   kanji: string[];
   frequency?: number;
   jlpt?: number;

@@ -28,6 +28,7 @@ const BY_WORD = new Map(ENTRIES.map((e) => [e.word, e]));
 export const seedSource: DictionarySource = {
   name: "seed",
   async lookup(word) {
-    return BY_WORD.get(word) ?? null;
+    const entry = BY_WORD.get(word);
+    return entry ? [entry] : null;
   },
 };

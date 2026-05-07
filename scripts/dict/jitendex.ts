@@ -110,7 +110,7 @@ type SeqCandidate = { reading: string; glosses: string[]; jlpt?: number; bestSco
 
 class JitendexSource implements DictionarySource {
   name = "jitendex";
-  private byWord = new Map<string, WordEntry>();
+  private byWord = new Map<string, WordEntry[]>();
   private prepared = false;
 
   async prepare() {
@@ -172,32 +172,32 @@ class JitendexSource implements DictionarySource {
       }
     }
 
-    // For each expression, pick the best group.
+    // Collect all sequences per expression, sort best-first.
     // Primary criterion: highest score (reflects JMdict priority tags — news1/ichi1/spec1 etc).
     // Tie-break: most glosses (the richest entry is the primary sense, e.g. ひと over にん for 人).
     // Second tie-break: lowest sequence number.
-    const bestSeq = new Map<string, { score: number; glossCount: number; seq: number; key: string }>();
+    // entries[0] is the primary/best entry; all are preserved for multi-entry display.
+    const allByExpr = new Map<string, { score: number; glossCount: number; seq: number; key: string }[]>();
     for (const key of bySeq.keys()) {
       const [expression, seqStr] = key.split("\0");
       const seq = parseInt(seqStr, 10);
       const c = bySeq.get(key)!;
-      const current = bestSeq.get(expression);
-      const better =
-        !current ||
-        c.bestScore > current.score ||
-        (c.bestScore === current.score && c.glosses.length > current.glossCount) ||
-        (c.bestScore === current.score && c.glosses.length === current.glossCount && seq < current.seq);
-      if (better) bestSeq.set(expression, { score: c.bestScore, glossCount: c.glosses.length, seq, key });
+      const arr = allByExpr.get(expression) ?? [];
+      arr.push({ score: c.bestScore, glossCount: c.glosses.length, seq, key });
+      allByExpr.set(expression, arr);
     }
 
-    for (const [expression, { key }] of bestSeq) {
-      const c = bySeq.get(key)!;
-      this.byWord.set(expression, {
-        word: expression,
-        reading: c.reading,
-        glosses: c.glosses.slice(0, MAX_GLOSSES),
-        jlpt: c.jlpt,
+    for (const [expression, candidates] of allByExpr) {
+      candidates.sort((a, b) =>
+        b.score !== a.score ? b.score - a.score :
+        b.glossCount !== a.glossCount ? b.glossCount - a.glossCount :
+        a.seq - b.seq
+      );
+      const entries: WordEntry[] = candidates.map(({ key }) => {
+        const c = bySeq.get(key)!;
+        return { word: expression, reading: c.reading, glosses: c.glosses.slice(0, MAX_GLOSSES), jlpt: c.jlpt };
       });
+      this.byWord.set(expression, entries);
     }
     console.log(`[jitendex] indexed ${this.byWord.size} entries from ${banks.length} term banks`);
   }

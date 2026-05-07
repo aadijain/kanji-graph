@@ -17,6 +17,7 @@ const FOCUS_MODE = [
   ["Click a neighbor or edge", "Navigate to that word"],
   ["Hover a kanji", "Filter connections by that kanji"],
   ["Hover the reading", "Filter to same-reading connections"],
+  ["<> in details", "Cycle through a word's dictionary entries"],
   ["Left edge / Esc", "Return to graph view"],
 ] as const;
 

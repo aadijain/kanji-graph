@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "../store";
 import { endpointId, type Edge, type HighFreqConnection } from "../types";
 import { playPronunciation } from "../lib/audio";
@@ -29,13 +29,17 @@ export default function DetailsPanel() {
   const hoveredReading = useStore((s) => s.hoveredReading);
   const edgeColors = useStore((s) => s.settings.edgeColors);
   const [playing, setPlaying] = useState(false);
+  const [entryIdx, setEntryIdx] = useState(0);
 
   const subject = hovered ?? focused;
+
+  useEffect(() => { setEntryIdx(0); }, [subject?.id]);
 
   const connections = useMemo(() => {
     if (!subject || !graph) return null;
     const byKanji = new Map<string, string[]>();
     for (const k of subject.kanji) byKanji.set(k, []);
+    const sameReadingSet = new Set<string>();
     const sameReading: string[] = [];
     // key: neighbor kanji (K2); value: subject-side kanji (K1) + neighbor words
     const similarByKanji = new Map<string, { subjectKanji: string; others: string[] }>();
@@ -47,7 +51,7 @@ export default function DetailsPanel() {
       if (e.type === "shared-kanji") {
         for (const k of e.via) if (byKanji.has(k)) byKanji.get(k)!.push(other);
       } else if (e.type === "same-reading") {
-        sameReading.push(other);
+        if (!sameReadingSet.has(other)) { sameReadingSet.add(other); sameReading.push(other); }
       } else if (e.type === "similar-kanji") {
         const subjectKanji = e.via.find((k) => subject.kanji.includes(k));
         for (const k of e.via) {
@@ -69,6 +73,10 @@ export default function DetailsPanel() {
 
   if (!subject) return null;
 
+  const entries = subject.entries ?? [{ reading: subject.reading, glosses: subject.glosses, jlpt: subject.jlpt }];
+  const clampedIdx = Math.min(entryIdx, entries.length - 1);
+  const entry = entries[clampedIdx];
+
   return (
     <div className="absolute right-6 top-6 w-96 rounded-lg border border-ink-700 bg-ink-900 p-4 shadow-xl">
       <div className="flex items-center gap-2">
@@ -79,7 +87,7 @@ export default function DetailsPanel() {
           onClick={async () => {
             if (playing) return;
             setPlaying(true);
-            await playPronunciation(subject.word, subject.reading);
+            await playPronunciation(subject.word, entry.reading);
             setPlaying(false);
           }}
           className={`rounded p-1 transition-colors ${
@@ -90,15 +98,34 @@ export default function DetailsPanel() {
         >
           <SpeakerIcon className={`h-4 w-4 ${playing ? "animate-pulse" : ""}`} />
         </button>
+        {entries.length > 1 && (
+          <div className="ml-auto flex items-center gap-1 text-[11px] text-ink-500">
+            <button
+              type="button"
+              aria-label="Previous entry"
+              disabled={clampedIdx === 0}
+              onClick={() => setEntryIdx((i) => Math.max(0, i - 1))}
+              className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
+            >&lt;</button>
+            <span>{clampedIdx + 1}/{entries.length}</span>
+            <button
+              type="button"
+              aria-label="Next entry"
+              disabled={clampedIdx === entries.length - 1}
+              onClick={() => setEntryIdx((i) => Math.min(entries.length - 1, i + 1))}
+              className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
+            >&gt;</button>
+          </div>
+        )}
       </div>
-      <div className="jp mt-1 text-sm text-ink-300">{subject.reading}</div>
+      <div className="jp mt-1 text-sm text-ink-300">{entry.reading}</div>
       <ul className="mt-3 space-y-0.5 text-sm leading-snug text-ink-100">
-        {subject.glosses.map((g, i) => (
+        {entry.glosses.map((g, i) => (
           <li key={i}>{g}</li>
         ))}
       </ul>
       <div className="mt-3 flex gap-3 text-[11px] uppercase tracking-wide text-ink-500">
-        {subject.jlpt != null && <span>JLPT N{subject.jlpt}</span>}
+        {entry.jlpt != null && <span>JLPT N{entry.jlpt}</span>}
         {subject.frequency != null && <span>rank #{subject.frequency}</span>}
       </div>
 
