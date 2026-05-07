@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toRomaji } from "wanakana";
 import { useStore } from "../store";
+import { deinflect } from "../lib/deinflect";
 import type { WordNode } from "../types";
 
 const MAX_RESULTS = 8;
@@ -8,21 +9,24 @@ const MAX_RESULTS = 8;
 // Pre-normalize a node's reading to romaji for romaji query matching.
 const readingRomaji = (node: WordNode) => toRomaji(node.reading).toLowerCase();
 
-function matchesQuery(node: WordNode, q: string, qRomaji: string): boolean {
+function matchesQuery(node: WordNode, q: string, qRomaji: string, qForms: string[]): boolean {
   return (
     node.word.includes(q) ||
     node.reading.includes(q) ||
-    readingRomaji(node).includes(qRomaji)
+    readingRomaji(node).includes(qRomaji) ||
+    qForms.some((c) => node.word === c)
   );
 }
 
 // Lower score = ranked higher.
-// Prefer starts-with over contains; romaji hits rank below direct hits.
-function resultScore(node: WordNode, q: string, qRomaji: string): number {
+// Prefer starts-with over contains; romaji hits rank below direct hits; deinflected matches last.
+function resultScore(node: WordNode, q: string, qRomaji: string, qForms: string[]): number {
   if (node.word.startsWith(q) || node.reading.startsWith(q)) return 0;
   if (node.word.includes(q) || node.reading.includes(q)) return 1;
   if (readingRomaji(node).startsWith(qRomaji)) return 2;
-  return 3;
+  if (readingRomaji(node).includes(qRomaji)) return 3;
+  if (qForms.some((c) => node.word === c)) return 4;
+  return 5;
 }
 
 export default function SearchOverlay({
@@ -45,9 +49,10 @@ export default function SearchOverlay({
     const q = query.trim();
     if (!q) return [];
     const qRomaji = q.toLowerCase();
+    const qForms = deinflect(q).filter((c) => c !== q);
     return graph.nodes
-      .filter((n) => matchesQuery(n, q, qRomaji))
-      .sort((a, b) => resultScore(a, q, qRomaji) - resultScore(b, q, qRomaji))
+      .filter((n) => matchesQuery(n, q, qRomaji, qForms))
+      .sort((a, b) => resultScore(a, q, qRomaji, qForms) - resultScore(b, q, qRomaji, qForms))
       .slice(0, MAX_RESULTS);
   }, [graph, query]);
 

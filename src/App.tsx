@@ -10,6 +10,7 @@ import SearchOverlay from "./components/SearchOverlay";
 import InfoModal from "./components/InfoModal";
 import SettingsPanel from "./components/SettingsPanel";
 import { playPronunciation } from "./lib/audio";
+import { deinflect } from "./lib/deinflect";
 import { BACK_STRIP_PANEL_LEFT } from "./lib/constants";
 import type { GraphData } from "./types";
 
@@ -225,7 +226,11 @@ export default function App() {
       lastClipboardWord.current = word;
       const { graph: g, setFocused: sf } = useStore.getState();
       if (!g) return;
-      const node = g.nodes.find((n) => n.word === word);
+      const candidates = deinflect(word);
+      const node = candidates.reduce<(typeof g.nodes)[0] | undefined>(
+        (found, c) => found ?? g.nodes.find((n) => n.word === c),
+        undefined,
+      );
       if (node) sf(node);
     }
 
