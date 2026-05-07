@@ -3,8 +3,7 @@ import { toRomaji } from "wanakana";
 import { useStore } from "../store";
 import { deinflect } from "../lib/deinflect";
 import type { WordNode } from "../types";
-
-const MAX_RESULTS = 8;
+import { SEARCH_MAX_RESULTS } from "../lib/constants";
 
 const readingRomaji = (node: WordNode) => toRomaji(node.reading).toLowerCase();
 
@@ -64,7 +63,7 @@ export default function SearchOverlay({
     return graph.nodes
       .filter((n) => matchesQuery(n, q, qRomaji, qForms))
       .sort((a, b) => resultScore(a, q, qRomaji, qForms) - resultScore(b, q, qRomaji, qForms))
-      .slice(0, MAX_RESULTS);
+      .slice(0, SEARCH_MAX_RESULTS);
   }, [graph, query]);
 
   useEffect(() => {

@@ -24,17 +24,16 @@ import {
   NODE_REL_SIZE,
   FOCUS_RING_RADIUS_MULTIPLIER,
   RESIZE_FIT_MS,
+  FOCUS_SHADOW_BLUR,
+  FREQ_DOT_MIN,
+  FREQ_DOT_MAX,
+  FREQ_LOG_MAX,
 } from "../lib/constants";
 
 type Pos = { id: string; x: number; y: number };
 
-// Dot radius based on JPDB frequency rank (lower rank = more common = larger dot).
-// Log normalization + power curve to spread the mid-range apart visually.
-const FREQ_DOT_MIN = 1.5;
-const FREQ_DOT_MAX = 11;
-const LOG_FREQ_MAX = 100_000;
 function freqDotR(rank: number): number {
-  const normalized = Math.max(0, 1 - Math.log(rank) / Math.log(LOG_FREQ_MAX));
+  const normalized = Math.max(0, 1 - Math.log(rank) / Math.log(FREQ_LOG_MAX));
   return FREQ_DOT_MIN + (FREQ_DOT_MAX - FREQ_DOT_MIN) * Math.pow(normalized, 0.7);
 }
 
@@ -544,7 +543,7 @@ export default function Graph() {
         if (isFocus) {
           ctx.fillStyle = COLORS.focus;
           ctx.shadowColor = COLORS.focusShadow;
-          ctx.shadowBlur = 16;
+          ctx.shadowBlur = FOCUS_SHADOW_BLUR;
         } else if (focused && isNeighbor) {
           const nd = neighborData.get(n.id);
           const via = nd?.via ?? [];

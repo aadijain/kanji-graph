@@ -1,3 +1,6 @@
+// All tunable values for the build pipeline live here. When adding a magic
+// number or string anywhere in scripts/, export it from this file instead.
+
 // ── Kanji ────────────────────────────────────────────────────────────────────
 
 export const KANJI_RE = /[一-鿿]/;
@@ -47,4 +50,4 @@ export const MIN_ENTRY_SCORE = 1;
 // counts that are noise rather than signal. Revisit as the word list grows -
 // at 4K words, 50 words/kanji is ~1225 edges per kanji which is already noisy;
 // lowering to ~30 would filter the top ~10 kanji and cut edges by ~60%.
-export const BRIDGE_KANJI_MAX_WORDS = 25;
+export const BRIDGE_KANJI_MAX_WORDS = 15;

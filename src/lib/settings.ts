@@ -1,5 +1,8 @@
+// User-facing preset mappings (label -> numeric value) live here alongside the
+// Settings schema. Internal/non-user-facing constants belong in constants.ts.
+
 import type { EdgeType } from "../types";
-import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY, SETTINGS_LEGACY_KEY_V2 } from "./constants";
+import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY, SETTINGS_LEGACY_KEY_V2, EDGE_TYPE_META } from "./constants";
 
 export type AnimationSpeed = "instant" | "fast" | "normal" | "slow";
 export type FocusZoom = "close" | "normal" | "far";
@@ -31,7 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   localAudioEnabled: false,
   audioServerUrl: "",
   edgeVisibility: { "shared-kanji": true, "same-reading": true, "similar-kanji": true },
-  edgeColors: { "shared-kanji": "#d4a857", "same-reading": "#7aa8d9", "similar-kanji": "#a880d4" },
+  edgeColors: Object.fromEntries(Object.entries(EDGE_TYPE_META).map(([k, v]) => [k, v.hex])) as Record<EdgeType, string>,
   animationSpeed: "normal",
   focusZoom: "normal",
   neighborSpread: "normal",

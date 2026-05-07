@@ -8,7 +8,7 @@ import {
   type NeighborSpread,
   type NodeSize,
 } from "../lib/settings";
-import { LAYOUT_STORAGE_KEY, EDGE_TYPE_META, EDGE_COLOR_SWATCHES } from "../lib/constants";
+import { LAYOUT_STORAGE_KEY, EDGE_TYPE_META, EDGE_COLOR_SWATCHES, SETTINGS_SECTIONS_KEY } from "../lib/constants";
 import type { EdgeType } from "../types";
 
 const EDGE_ENTRIES = (Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][]).map(
@@ -75,11 +75,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-const SECTION_STATE_KEY = "kanji-graph:settings-sections";
-
 function getSectionOpen(id: string): boolean {
   try {
-    const stored = localStorage.getItem(SECTION_STATE_KEY);
+    const stored = localStorage.getItem(SETTINGS_SECTIONS_KEY);
     if (!stored) return false;
     const parsed = JSON.parse(stored);
     return parsed[id] === true;
@@ -90,9 +88,9 @@ function getSectionOpen(id: string): boolean {
 
 function setSectionOpen(id: string, open: boolean) {
   try {
-    const stored = localStorage.getItem(SECTION_STATE_KEY);
+    const stored = localStorage.getItem(SETTINGS_SECTIONS_KEY);
     const parsed = stored ? JSON.parse(stored) : {};
-    localStorage.setItem(SECTION_STATE_KEY, JSON.stringify({ ...parsed, [id]: open }));
+    localStorage.setItem(SETTINGS_SECTIONS_KEY, JSON.stringify({ ...parsed, [id]: open }));
   } catch {
     // ignore
   }
