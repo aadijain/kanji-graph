@@ -118,7 +118,7 @@ export default function SettingsPanel({ onClose }: Props) {
                     className="inline-block h-px w-5 flex-shrink-0"
                     style={{ background: activeColor }}
                   />
-                  <span className="flex-1 text-sm text-ink-100">{label}</span>
+                  <span className="flex-1 text-sm text-primary">{label}</span>
                   <div className="flex gap-1">
                     {EDGE_COLOR_SWATCHES.map(({ hex }) => (
                       <button
@@ -165,7 +165,7 @@ export default function SettingsPanel({ onClose }: Props) {
                 onChange={(e) => updateSettings({ audioServerUrl: e.target.value })}
                 placeholder="http://127.0.0.1:5050/?term={term}&reading={reading}"
                 spellCheck={false}
-                className="w-full rounded border border-ink-700 bg-ink-800 px-2.5 py-1.5 text-xs text-ink-100 placeholder:text-ink-700 focus:border-ink-500 focus:outline-none"
+                className="w-full rounded border border-ink-700 bg-ink-800 px-2.5 py-1.5 text-xs text-primary placeholder:text-ink-700 focus:border-ink-500 focus:outline-none"
               />
             )}
           </Section>
@@ -188,7 +188,7 @@ export default function SettingsPanel({ onClose }: Props) {
               />
             </Row>
             {settings.clipboardSyncEnabled && clipboardPerm !== null && (
-              <p className="text-xs text-ink-500">
+              <p className="text-xs text-muted">
                 {clipboardPerm === "granted"
                   ? "Tab-switch detection active."
                   : clipboardPerm === "denied"
@@ -244,14 +244,14 @@ export default function SettingsPanel({ onClose }: Props) {
             <button
               type="button"
               onClick={() => { localStorage.removeItem(LAYOUT_STORAGE_KEY); window.location.reload(); }}
-              className="rounded border border-ink-700 px-3 py-1 text-xs text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+              className="rounded border border-ink-700 px-3 py-1 text-xs text-dim transition-colors hover:border-ink-500 hover:text-primary"
             >
               Reset positions
             </button>
             <button
               type="button"
               onClick={() => updateSettings({ ...DEFAULT_SETTINGS })}
-              className="rounded border border-ink-700 px-3 py-1 text-xs text-ink-400 transition-colors hover:border-ink-700 hover:text-accent-rose"
+              className="rounded border border-ink-700 px-3 py-1 text-xs text-dim transition-colors hover:border-ink-700 hover:text-accent-rose"
             >
               Reset all settings
             </button>

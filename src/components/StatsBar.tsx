@@ -45,14 +45,14 @@ export default function StatsBar() {
   if (focusedByType) {
     const total = EDGE_TYPES.reduce((sum, t) => sum + (focusedByType[t] ?? 0), 0);
     return (
-      <div className="flex gap-5 rounded-lg bg-ink-900 px-3 py-1.5 text-xs uppercase tracking-wide text-ink-300">
+      <div className="flex gap-5 rounded-lg bg-ink-900 px-3 py-1.5 text-xs uppercase tracking-wide text-secondary">
         <span className="pointer-events-none">
           <span className="text-accent-paper">{total}</span> connections
         </span>
         <span className="pointer-events-none flex gap-2">
           {EDGE_TYPES.filter((t) => (focusedByType[t] ?? 0) > 0).map((t, i) => (
             <span key={t}>
-              {i > 0 && <span className="text-ink-600"> · </span>}
+              {i > 0 && <span className="text-subtle"> · </span>}
               <span style={{ color: edgeColors[t] }}>{focusedByType[t]}</span>
               {" "}{EDGE_TYPE_META[t].label}
             </span>
@@ -64,7 +64,7 @@ export default function StatsBar() {
 
   const { words, edges, kanji } = graph.stats;
   return (
-    <div className="flex gap-5 rounded-lg bg-ink-900 px-3 py-1.5 text-xs uppercase tracking-wide text-ink-300">
+    <div className="flex gap-5 rounded-lg bg-ink-900 px-3 py-1.5 text-xs uppercase tracking-wide text-secondary">
       <span className="pointer-events-none">
         <span className="text-accent-paper">{words}</span> words
       </span>
@@ -80,7 +80,7 @@ export default function StatsBar() {
           <>
             {EDGE_TYPES.map((t, i) => (
               <span key={t}>
-                {i > 0 && <span className="text-ink-600"> · </span>}
+                {i > 0 && <span className="text-subtle"> · </span>}
                 <span style={{ color: edgeColors[t] }}>
                   {(globalByType[t] ?? 0) + (graph.stats.hiddenEdges?.[t] ?? 0)}
                 </span>

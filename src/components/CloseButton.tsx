@@ -3,7 +3,7 @@ export default function CloseButton({ onClick, className = "" }: { onClick: () =
     <button
       type="button"
       onClick={onClick}
-      className={`rounded p-1 text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-100 ${className}`}
+      className={`rounded p-1 text-muted transition-colors hover:bg-ink-800 hover:text-primary ${className}`}
       aria-label="Close"
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">

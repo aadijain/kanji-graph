@@ -16,7 +16,7 @@ function BackEdge({ onClick }: { onClick: () => void }) {
     >
       <div className="absolute inset-0 bg-gradient-to-r from-ink-900/80 via-ink-900/40 to-transparent transition-all duration-150 group-hover:from-ink-800 group-hover:via-ink-800/60" />
       <div className="absolute inset-0 flex items-center justify-start pl-3">
-        <span className="text-5xl text-ink-400 transition-all duration-150 group-hover:text-ink-100">‹</span>
+        <span className="text-5xl text-dim transition-all duration-150 group-hover:text-primary">‹</span>
       </div>
     </button>
   );
@@ -94,10 +94,10 @@ export default function FocusOverlay() {
                   isActive
                     ? "scale-110"
                     : (dim || hoveredReading)
-                      ? "text-ink-500"
+                      ? "text-muted"
                       : isKanji
-                        ? "text-ink-100"
-                        : "text-ink-300",
+                        ? "text-primary"
+                        : "text-secondary",
                 ].join(" ")}
                 style={isActive ? { color: edgeColors["shared-kanji"] } : undefined}
               >
@@ -122,7 +122,7 @@ export default function FocusOverlay() {
                 }}
                 onMouseEnter={() => setHoveredReading(true)}
                 onMouseLeave={() => setHoveredReading(false)}
-                className={`cursor-pointer text-sm transition duration-150 ${isActive ? "" : "text-ink-500 hover:text-ink-300"}`}
+                className={`cursor-pointer text-sm transition duration-150 ${isActive ? "" : "text-muted hover:text-secondary"}`}
                 style={isActive ? { color: hoveredReading ? edgeColors["same-reading"] : undefined } : undefined}
               >
                 {e.reading}

@@ -135,13 +135,13 @@ export default function DetailsPanel() {
           className={`rounded p-1 transition-colors ${
             playing
               ? "text-accent-gold"
-              : "text-ink-500 hover:bg-ink-800 hover:text-accent-paper"
+              : "text-muted hover:bg-ink-800 hover:text-accent-paper"
           }`}
         >
           <SpeakerIcon className={`h-4 w-4 ${playing ? "animate-pulse" : ""}`} />
         </button>
         {entries.length > 1 && (
-          <div className="ml-auto flex items-center gap-1 text-xs text-ink-500">
+          <div className="ml-auto flex items-center gap-1 text-xs text-muted">
             <button
               type="button"
               aria-label="Previous entry"
@@ -160,20 +160,20 @@ export default function DetailsPanel() {
           </div>
         )}
       </div>
-      <div className="jp mt-1 text-sm text-ink-300">{entry.reading}</div>
-      <ul className="mt-3 space-y-0.5 text-sm leading-snug text-ink-100">
+      <div className="jp mt-1 text-sm text-secondary">{entry.reading}</div>
+      <ul className="mt-3 space-y-0.5 text-sm leading-snug text-primary">
         {entry.glosses.map((g, i) => (
           <li key={i}>{g}</li>
         ))}
       </ul>
-      <div className="mt-3 flex text-xs uppercase tracking-wide text-ink-500">
+      <div className="mt-3 flex text-xs uppercase tracking-wide text-muted">
         {entry.jlpt != null && <span>JLPT N{entry.jlpt}</span>}
         {activeNode.frequency != null && <span className="ml-auto">#{activeNode.frequency}</span>}
       </div>
 
       {connections && (connections.byKanji.size > 0 || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
-          <div className="text-xs uppercase tracking-wide text-ink-500">
+          <div className="text-xs uppercase tracking-wide text-muted">
             shared kanji
           </div>
           <div className="mt-2 space-y-2">
@@ -187,11 +187,11 @@ export default function DetailsPanel() {
                   }`}
                 >
                   <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["shared-kanji"] }}>{k}</div>
-                  <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-ink-100">
+                  <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-primary">
                     {others.length > 0 ? (
                       others.map((o) => <span key={o}>{o}</span>)
                     ) : (
-                      <span className="text-ink-500">—</span>
+                      <span className="text-muted">—</span>
                     )}
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export default function DetailsPanel() {
                   className={`flex items-start gap-3 transition-opacity ${dim ? "opacity-30" : "opacity-100"}`}
                 >
                   <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["shared-kanji"] }}>{c.kanji}</div>
-                  <div className="text-sm text-ink-500">(hidden)</div>
+                  <div className="text-sm text-muted">(hidden)</div>
                 </div>
               );
             })}
@@ -215,7 +215,7 @@ export default function DetailsPanel() {
 
       {connections && (connections.similarByKanji.size > 0 || connections.highFreq.some((c) => c.type === "similar-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
-          <div className="text-xs uppercase tracking-wide text-ink-500">
+          <div className="text-xs uppercase tracking-wide text-muted">
             similar kanji
           </div>
           <div className="mt-2 space-y-2">
@@ -229,7 +229,7 @@ export default function DetailsPanel() {
                   }`}
                 >
                   <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["similar-kanji"] }}>{k}</div>
-                  <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-ink-100">
+                  <div className="jp flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-primary">
                     {others.map((o) => <span key={o}>{o}</span>)}
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export default function DetailsPanel() {
                   className={`flex items-start gap-3 transition-opacity ${dim ? "opacity-30" : "opacity-100"}`}
                 >
                   <div className="jp w-6 shrink-0 text-lg" style={{ color: edgeColors["similar-kanji"] }}>{c.partnerKanji}</div>
-                  <div className="text-sm text-ink-500">(hidden)</div>
+                  <div className="text-sm text-muted">(hidden)</div>
                 </div>
               );
             })}
@@ -253,7 +253,7 @@ export default function DetailsPanel() {
 
       {connections && connections.sameReading.length > 0 && (
         <div className={`mt-4 border-t border-ink-700 pt-3 transition-opacity ${hoveredKanji ? "opacity-30" : "opacity-100"}`}>
-          <div className="text-xs uppercase tracking-wide text-ink-500">
+          <div className="text-xs uppercase tracking-wide text-muted">
             same reading
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
@@ -265,7 +265,7 @@ export default function DetailsPanel() {
 
       {connections && connections.alternateSpellings.length > 0 && (
         <div className={`mt-4 border-t border-ink-700 pt-3 transition-opacity ${hoveredKanji ? "opacity-30" : "opacity-100"}`}>
-          <div className="text-xs uppercase tracking-wide text-ink-500">
+          <div className="text-xs uppercase tracking-wide text-muted">
             alternate spelling
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"

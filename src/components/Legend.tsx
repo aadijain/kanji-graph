@@ -18,7 +18,7 @@ export default function Legend() {
   return (
     <div
       style={{ left: focused ? BACK_STRIP_PANEL_LEFT : 24 }}
-      className="absolute bottom-6 rounded-lg border border-ink-700 bg-ink-900 px-3 py-2 text-xs text-ink-300 transition-all duration-200"
+      className="absolute bottom-6 rounded-lg border border-ink-700 bg-ink-900 px-3 py-2 text-xs text-secondary transition-all duration-200"
     >
       <div className="space-y-1">
         {EDGE_ENTRIES.map(([type, { label }]) => {

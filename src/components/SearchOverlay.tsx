@@ -189,8 +189,8 @@ export default function SearchOverlay({
       >
         {/* Query display */}
         <div className="flex items-center gap-2 border-b border-ink-800 px-4 py-3">
-          <span className="text-xs text-ink-500">search</span>
-          <span className="flex-1 text-lg text-ink-100">
+          <span className="text-xs text-muted">search</span>
+          <span className="flex-1 text-lg text-primary">
             {query}
             <span className="ml-px inline-block h-[1em] w-px animate-pulse bg-ink-400 align-text-bottom" />
           </span>
@@ -198,7 +198,7 @@ export default function SearchOverlay({
 
         {/* Results */}
         {results.length === 0 ? (
-          <div className="px-4 py-3 text-xs text-ink-600">no matches</div>
+          <div className="px-4 py-3 text-xs text-subtle">no matches</div>
         ) : (
           <ul>
             {results.map((node, i) => (
@@ -209,20 +209,20 @@ export default function SearchOverlay({
                   onClick={() => commit(node)}
                   className={`flex w-full items-baseline gap-3 px-4 py-2 text-left transition-colors ${
                     i === selectedIdx
-                      ? "bg-ink-800 text-ink-100"
-                      : "text-ink-400 hover:bg-ink-900"
+                      ? "bg-ink-800 text-primary"
+                      : "text-dim hover:bg-ink-900"
                   } ${i === results.length - 1 && !overflow ? "rounded-b-xl" : ""}`}
                 >
-                  <span className="jp text-base font-medium text-ink-100">{node.word}</span>
-                  <span className="jp text-xs text-ink-500">{matchedReading(node, q, qRomaji)}</span>
+                  <span className="jp text-base font-medium text-primary">{node.word}</span>
+                  <span className="jp text-xs text-muted">{matchedReading(node, q, qRomaji)}</span>
                   {node.glosses[0] && (
-                    <span className="truncate text-xs text-ink-600">{node.glosses[0]}</span>
+                    <span className="truncate text-xs text-subtle">{node.glosses[0]}</span>
                   )}
                 </button>
               </li>
             ))}
             {overflow > 0 && (
-              <li className="rounded-b-xl px-4 py-2 text-xs text-ink-600">+{overflow} more</li>
+              <li className="rounded-b-xl px-4 py-2 text-xs text-subtle">+{overflow} more</li>
             )}
           </ul>
         )}

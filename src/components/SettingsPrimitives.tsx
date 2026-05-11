@@ -40,7 +40,7 @@ export function Steps<T extends string>({
           className={`px-2.5 py-1 transition-colors ${
             i < options.length - 1 ? "border-r border-ink-700" : ""
           } ${
-            opt.value === value ? "bg-ink-700 text-ink-100" : "text-ink-500 hover:text-ink-300"
+            opt.value === value ? "bg-ink-700 text-primary" : "text-muted hover:text-secondary"
           }`}
         >
           {opt.label}
@@ -53,7 +53,7 @@ export function Steps<T extends string>({
 export function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="flex-shrink-0 text-sm text-ink-100">{label}</span>
+      <span className="flex-shrink-0 text-sm text-primary">{label}</span>
       {children}
     </div>
   );
@@ -102,7 +102,7 @@ export function Section({
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center gap-2 text-xs text-ink-500 transition-colors hover:text-ink-300"
+        className="flex w-full items-center gap-2 text-xs text-muted transition-colors hover:text-secondary"
       >
         <svg
           viewBox="0 0 12 12"

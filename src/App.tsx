@@ -151,7 +151,7 @@ export default function App() {
       {graph ? (
         <Graph />
       ) : (
-        <div className="flex h-full items-center justify-center text-ink-500">
+        <div className="flex h-full items-center justify-center text-muted">
           loading…
         </div>
       )}

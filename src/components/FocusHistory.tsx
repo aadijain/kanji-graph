@@ -48,7 +48,7 @@ export default function FocusHistory() {
               <button
                 type="button"
                 onClick={() => rewindFocusHistory(i)}
-                className="jp text-ink-400 transition-colors hover:text-ink-100"
+                className="jp text-dim transition-colors hover:text-primary"
               >
                 {entry.word}
               </button>

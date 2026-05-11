@@ -28,8 +28,8 @@ function InteractionTable({ rows }: { rows: readonly (readonly [string, string])
     <div className="mt-1.5 space-y-1.5">
       {rows.map(([action, result]) => (
         <div key={action} className="flex gap-4 text-sm">
-          <span className="w-44 shrink-0 text-ink-100">{action}</span>
-          <span className="text-ink-500">{result}</span>
+          <span className="w-44 shrink-0 text-primary">{action}</span>
+          <span className="text-muted">{result}</span>
         </div>
       ))}
     </div>
@@ -50,13 +50,13 @@ export default function InfoModal({ onClose }: Props) {
         <CloseButton onClick={onClose} className="absolute right-4 top-4" />
 
         <h2 className="text-base font-semibold text-accent-paper">Kanji Graph</h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-300">
+        <p className="mt-2 text-sm leading-relaxed text-secondary">
           Hover words to see connections. Click to enter word view and explore a word's neighborhood.
         </p>
 
         {/* Graph view */}
         <div className="mt-5">
-          <div className="text-xs uppercase tracking-wide text-ink-500">Graph view</div>
+          <div className="text-xs uppercase tracking-wide text-muted">Graph view</div>
           <InteractionTable rows={GLOBAL_VIEW} />
         </div>
 
@@ -64,7 +64,7 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Word view */}
         <div className="mt-4">
-          <div className="text-xs uppercase tracking-wide text-ink-500">Word view</div>
+          <div className="text-xs uppercase tracking-wide text-muted">Word view</div>
           <InteractionTable rows={FOCUS_MODE} />
         </div>
 
@@ -72,10 +72,10 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Clipboard sync */}
         <div className="mt-4">
-          <div className="text-xs uppercase tracking-wide text-ink-500">Clipboard sync</div>
-          <p className="mt-1.5 text-sm leading-relaxed text-ink-500">
-            Enable <span className="text-ink-300">Settings → Clipboard → Follow clipboard</span> to
-            focus a word by copying it. Press <span className="text-ink-300">Ctrl+V</span> on the graph to
+          <div className="text-xs uppercase tracking-wide text-muted">Clipboard sync</div>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted">
+            Enable <span className="text-secondary">Settings → Clipboard → Follow clipboard</span> to
+            focus a word by copying it. Press <span className="text-secondary">Ctrl+V</span> on the graph to
             focus the copied word, or switch tabs for automatic focus on HTTPS.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Edge types */}
         <div className="mt-4">
-          <div className="text-xs uppercase tracking-wide text-ink-500">Edge types</div>
+          <div className="text-xs uppercase tracking-wide text-muted">Edge types</div>
           <div className="mt-1.5 space-y-2">
             {EDGE_ENTRIES.map(([type, { label, desc }]) => (
               <div key={type} className="flex items-start gap-3">
@@ -93,8 +93,8 @@ export default function InfoModal({ onClose }: Props) {
                   style={{ background: hexToRgba(edgeColors[type], 0.9) }}
                 />
                 <div>
-                  <div className="text-sm text-ink-100">{label}</div>
-                  <div className="text-xs text-ink-500">{desc}</div>
+                  <div className="text-sm text-primary">{label}</div>
+                  <div className="text-xs text-muted">{desc}</div>
                 </div>
               </div>
             ))}
