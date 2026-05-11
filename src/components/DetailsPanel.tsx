@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useStore } from "../store";
 import { endpointId, type Edge, type HighFreqConnection } from "../types";
-import { playPronunciation } from "../lib/audio";
+import { playPronunciation, stopAudio } from "../lib/audio";
 import { getNodeEntries } from "../lib/utils";
 
 function SpeakerIcon({ className }: { className?: string }) {
@@ -33,6 +33,7 @@ export default function DetailsPanel() {
   const edgeColors = useStore((s) => s.settings.edgeColors);
   const audioAutoPlay = useStore((s) => s.settings.audioAutoPlay);
   const [playing, setPlaying] = useState(false);
+  useEffect(() => () => stopAudio(), []);
   const [neighborEntryIdx, setNeighborEntryIdx] = useState(0);
 
   const activeNode = hovered ?? focused;

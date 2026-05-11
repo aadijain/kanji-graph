@@ -34,7 +34,7 @@ async function resolveAudioUrl(lookupUrl: string): Promise<string> {
   return first.replace(/^https?:\/\/[^/]+/, origin);
 }
 
-function stopAll() {
+export function stopAudio() {
   if (currentAudio) {
     currentAudio.pause();
     currentAudio = null;
@@ -101,7 +101,7 @@ function speakTTS(text: string): Promise<void> {
  * uses browser TTS directly.
  */
 export async function playPronunciation(word: string, reading: string): Promise<void> {
-  stopAll();
+  stopAudio();
   const { localAudioEnabled } = useStore.getState().settings;
   if (!localAudioEnabled) {
     await speakTTS(reading || word);

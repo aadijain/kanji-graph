@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { KANJI_RE, BACK_STRIP_WIDTH } from "../lib/constants";
-import { playPronunciation } from "../lib/audio";
+import { playPronunciation, stopAudio } from "../lib/audio";
 import { getNodeEntries } from "../lib/utils";
 
 function BackEdge({ onClick }: { onClick: () => void }) {
@@ -38,6 +38,8 @@ export default function FocusOverlay() {
   // indicator is rendered here, so triggering a re-render would be wasteful.
   // DetailsPanel uses useState because it shows an animated speaker icon.
   const playingRef = useRef(false);
+
+  useEffect(() => () => stopAudio(), []);
 
   // Anchor the word block to the focused node's live screen position.
   // Graph.tsx publishes a getter via the store; we update transform each frame
