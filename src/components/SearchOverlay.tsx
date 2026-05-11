@@ -4,6 +4,7 @@ import { useStore } from "../store";
 import { deinflect } from "../lib/deinflect";
 import type { WordNode } from "../types";
 import { SEARCH_MAX_RESULTS } from "../lib/constants";
+import { getNodeEntries } from "../lib/utils";
 
 // Return the reading that matched the query: the secondary entry's reading if that's what matched.
 function matchedReading(node: WordNode, q: string, qRomaji: string): string {
@@ -15,7 +16,7 @@ function matchedReading(node: WordNode, q: string, qRomaji: string): string {
 }
 
 function allReadings(node: WordNode): string[] {
-  return [...new Set((node.entries ?? []).map((e) => e.reading).filter(Boolean))];
+  return [...new Set(getNodeEntries(node).map((e) => e.reading).filter(Boolean))];
 }
 
 function matchesQuery(node: WordNode, q: string, qRomaji: string, qForms: string[]): boolean {
@@ -49,7 +50,7 @@ function resultScore(node: WordNode, q: string, qRomaji: string, qForms: string[
 // romaji contains) so the best-quality match wins, and within that the earliest
 // (highest-score) entry index is returned.
 function matchingEntryIdx(node: WordNode, q: string, qRomaji: string): number {
-  const entries = node.entries ?? [];
+  const entries = getNodeEntries(node);
   const preds = [
     (r: string) => r === q,
     (r: string) => r.startsWith(q),

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore } from "../store";
 import { endpointId, type Edge, type HighFreqConnection } from "../types";
 import { playPronunciation } from "../lib/audio";
+import { getNodeEntries } from "../lib/utils";
 
 function SpeakerIcon({ className }: { className?: string }) {
   return (
@@ -47,7 +48,7 @@ export default function DetailsPanel() {
           ((s === subject.id && t === focused.id) || (s === focused.id && t === subject.id));
       });
       if (edge) {
-        const idx = (subject.entries ?? []).findIndex((e) => e.reading === edge.via[0]);
+        const idx = getNodeEntries(subject).findIndex((e) => e.reading === edge.via[0]);
         setNeighborEntryIdx(idx >= 0 ? idx : 0);
         return;
       }
@@ -98,7 +99,7 @@ export default function DetailsPanel() {
 
   if (!subject) return null;
 
-  const entries = subject.entries ?? [{ reading: subject.reading, glosses: subject.glosses, jlpt: subject.jlpt }];
+  const entries = getNodeEntries(subject);
   const rawIdx = isFocusedSubject ? focusedEntryIdx : neighborEntryIdx;
   const clampedIdx = Math.min(rawIdx, entries.length - 1);
   const entry = entries[clampedIdx];

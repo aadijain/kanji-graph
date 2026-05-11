@@ -1,6 +1,5 @@
 import { useStore } from "../store";
-import { hexToRgba, EDGE_TYPE_META } from "../lib/constants";
-import type { EdgeType } from "../types";
+import { hexToRgba, EDGE_ENTRIES } from "../lib/constants";
 
 interface Props {
   onClose: () => void;
@@ -95,7 +94,7 @@ export default function InfoModal({ onClose }: Props) {
         <div className="mt-4">
           <div className="text-[11px] uppercase tracking-wide text-ink-500">Edge types</div>
           <div className="mt-1.5 space-y-2">
-            {(Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][]).map(([type, { label, desc }]) => (
+            {EDGE_ENTRIES.map(([type, { label, desc }]) => (
               <div key={type} className="flex items-start gap-3">
                 <span
                   className="mt-[5px] inline-block h-px w-5 shrink-0"

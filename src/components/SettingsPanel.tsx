@@ -8,12 +8,8 @@ import {
   type NeighborSpread,
   type NodeSize,
 } from "../lib/settings";
-import { LAYOUT_STORAGE_KEY, EDGE_TYPE_META, EDGE_COLOR_SWATCHES, SETTINGS_SECTIONS_KEY } from "../lib/constants";
+import { LAYOUT_STORAGE_KEY, EDGE_ENTRIES, EDGE_COLOR_SWATCHES, SETTINGS_SECTIONS_KEY } from "../lib/constants";
 import type { EdgeType } from "../types";
-
-const EDGE_ENTRIES = (Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][]).map(
-  ([type, { label }]) => ({ type, label }),
-);
 
 // ── Primitives ───────────────────────────────────────────────────────────────
 
@@ -245,7 +241,7 @@ export default function SettingsPanel({ onClose }: Props) {
 
           {/* Connection types */}
           <Section title="Connection types">
-            {EDGE_ENTRIES.map(({ type, label }) => {
+            {EDGE_ENTRIES.map(([type, { label }]) => {
               const activeColor = settings.edgeColors[type];
               return (
                 <div key={type} className="flex items-center gap-3">

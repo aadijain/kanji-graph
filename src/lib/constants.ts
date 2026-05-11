@@ -63,6 +63,13 @@ export const EDGE_TYPE_META: Record<EdgeType, { label: string; hex: string; desc
   "alternate-spelling": { label: "alternate spelling", hex: "#d97a82", desc: "same word written with different kanji or kana" },
 };
 
+// Typed array of all [EdgeType, meta] pairs. Use instead of Object.entries(EDGE_TYPE_META).
+export const EDGE_ENTRIES = Object.entries(EDGE_TYPE_META) as [EdgeType, typeof EDGE_TYPE_META[EdgeType]][];
+
+// Priority order for picking the "primary" type when a word-pair has multiple edges.
+// alternate-spelling is excluded: it's a different relationship, not ranked against the others.
+export const EDGE_TYPE_PRIORITY: EdgeType[] = ["shared-kanji", "similar-kanji", "same-reading"];
+
 // Curated swatch palette for edge color selection (matches accent.* in tailwind.config.js).
 export const EDGE_COLOR_SWATCHES = [
   { label: "gold",  hex: "#d4a857" },

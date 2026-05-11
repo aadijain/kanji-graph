@@ -16,6 +16,7 @@ import {
   NODE_COLORS,
   LIGHT_NODE_COLORS,
   EDGE_TYPE_META,
+  EDGE_TYPE_PRIORITY,
   hexToRgba,
   FONT_FAMILY,
   COOLDOWN_TICKS,
@@ -202,7 +203,6 @@ export default function Graph() {
 
   // Curvature for parallel edges (same word-pair, different type) so they don't overlap.
   const edgeCurvature = useMemo(() => {
-    const typePriority: Edge["type"][] = ["shared-kanji", "similar-kanji", "same-reading"];
     const pairMap = new Map<string, Edge[]>();
     for (const e of graph.edges as Edge[]) {
       const s = endpointId(e.source);
@@ -217,7 +217,7 @@ export default function Graph() {
         curvMap.set(edges[0], 0);
       } else {
         const sorted = [...edges].sort(
-          (a, b) => typePriority.indexOf(a.type) - typePriority.indexOf(b.type)
+          (a, b) => EDGE_TYPE_PRIORITY.indexOf(a.type) - EDGE_TYPE_PRIORITY.indexOf(b.type)
         );
         const step = 0.12;
         const start = -((sorted.length - 1) * step) / 2;
@@ -284,9 +284,8 @@ export default function Graph() {
       map.set(other, d);
     }
     const result = new Map<string, NData>();
-    const typePriority: Edge["type"][] = ["shared-kanji", "similar-kanji", "same-reading"];
     for (const [id, d] of map) {
-      const primaryType = typePriority.find((t) => d.types.includes(t)) ?? d.types[0];
+      const primaryType = EDGE_TYPE_PRIORITY.find((t) => d.types.includes(t)) ?? d.types[0];
       result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types, similarKanjiMap: d.similarPairs });
     }
     return result;

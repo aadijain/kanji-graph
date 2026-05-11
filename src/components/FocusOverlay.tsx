@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { KANJI_RE, BACK_STRIP_WIDTH } from "../lib/constants";
 import { playPronunciation } from "../lib/audio";
+import { getNodeEntries } from "../lib/utils";
 
 function BackEdge({ onClick }: { onClick: () => void }) {
   return (
@@ -60,7 +61,7 @@ export default function FocusOverlay() {
   if (!focused) return null;
 
   const chars = [...focused.word];
-  const entries = focused.entries ?? [{ reading: focused.reading }];
+  const entries = getNodeEntries(focused);
   const activeIdx = Math.min(focusedEntryIdx, entries.length - 1);
 
   return (

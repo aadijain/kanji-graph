@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import { useStore } from "../store";
+import { EDGE_TYPE_PRIORITY } from "../lib/constants";
 import { endpointId, type Edge, type EdgeType } from "../types";
-
-const TYPE_PRIORITY: EdgeType[] = ["shared-kanji", "similar-kanji", "same-reading"];
 
 export default function FocusHistory() {
   const focusHistory = useStore((s) => s.focusHistory);
@@ -24,7 +23,7 @@ export default function FocusHistory() {
         const t = endpointId(e.target);
         if ((s === aId && t === bId) || (s === bId && t === aId)) types.add(e.type);
       }
-      const primary = TYPE_PRIORITY.find((t) => types.has(t));
+      const primary = EDGE_TYPE_PRIORITY.find((t) => types.has(t));
       colors.push(primary ? edgeColors[primary] : "#4a4a5a");
     }
     return colors;

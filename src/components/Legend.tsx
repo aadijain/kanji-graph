@@ -1,8 +1,6 @@
 import { useStore } from "../store";
-import { EDGE_TYPE_META, BACK_STRIP_PANEL_LEFT } from "../lib/constants";
+import { EDGE_ENTRIES, BACK_STRIP_PANEL_LEFT } from "../lib/constants";
 import type { EdgeType } from "../types";
-
-const EDGE_ENTRIES = Object.entries(EDGE_TYPE_META) as [EdgeType, { label: string; hex: string }][];
 
 export default function Legend() {
   const edgeColors = useStore((s) => s.settings.edgeColors);
