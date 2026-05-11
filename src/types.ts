@@ -52,6 +52,14 @@ export interface GraphData {
   generatedAt: string;
 }
 
+export interface NeighborData {
+  via: string[];
+  kanjiType: Map<string, EdgeType>;
+  primaryType: EdgeType;
+  types: EdgeType[];
+  similarKanjiMap: Map<string, string>;
+}
+
 export const edgeId = (e: Edge) => {
   const s = typeof e.source === "string" ? e.source : e.source.id;
   const t = typeof e.target === "string" ? e.target : e.target.id;
