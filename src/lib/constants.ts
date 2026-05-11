@@ -92,7 +92,6 @@ export const SETTINGS_SECTIONS_KEY = "kanji-graph:settings-sections";
 
 // ── Graph renderer ───────────────────────────────────────────────────────────
 
-export const GRAPH_BG = NODE_COLORS.background;
 export const COOLDOWN_TICKS = 300;
 export const D3_ALPHA_DECAY = 0.02;
 export const D3_VELOCITY_DECAY = 0.3;
@@ -100,7 +99,6 @@ export const NODE_REL_SIZE = 4;
 export const FOCUS_RING_RADIUS_MULTIPLIER = 2.4;
 export const FOCUS_SHADOW_BLUR = 16;
 export const RESIZE_FIT_MS = 400;
-export const ENGINE_STOP_FIT_MS = 600;
 export const FOCUS_HISTORY_MAX = 10;
 // Width of the left back-to-graph strip in focus mode (px).
 export const BACK_STRIP_WIDTH = 80;

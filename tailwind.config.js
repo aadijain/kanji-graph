@@ -5,7 +5,6 @@ export default {
     extend: {
       fontFamily: {
         jp: ['"Noto Sans JP"', '"Hiragino Sans"', '"Yu Gothic"', "sans-serif"],
-        ui: ['"Inter"', "system-ui", "sans-serif"],
       },
       colors: {
         // Space-separated RGB tuples so opacity modifiers (bg-ink-900/80) work.
