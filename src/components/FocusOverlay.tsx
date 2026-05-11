@@ -34,6 +34,9 @@ export default function FocusOverlay() {
   const edgeColors = useStore((s) => s.settings.edgeColors);
   const audioAutoPlay = useStore((s) => s.settings.audioAutoPlay);
   const wordRef = useRef<HTMLDivElement>(null);
+  // Ref instead of state: we only need a guard against double-play; no visual
+  // indicator is rendered here, so triggering a re-render would be wasteful.
+  // DetailsPanel uses useState because it shows an animated speaker icon.
   const playingRef = useRef(false);
 
   // Anchor the word block to the focused node's live screen position.
