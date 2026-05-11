@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { KANJI_RE, BACK_STRIP_WIDTH } from "../lib/constants";
+import { graphRef } from "../lib/graphRef";
 import { playPronunciation, stopAudio } from "../lib/audio";
 import { getNodeEntries } from "../lib/utils";
 
@@ -50,7 +51,7 @@ export default function FocusOverlay() {
     let raf = 0;
     const tick = () => {
       const el = wordRef.current;
-      const get = useStore.getState().focusScreenPosGetter;
+      const get = graphRef.getFocusScreenPos;
       const p = get?.();
       if (el && p) {
         // -50% centers the block on the node; the -96px lift mirrors the

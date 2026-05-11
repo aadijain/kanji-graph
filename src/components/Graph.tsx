@@ -33,6 +33,7 @@ import {
   FREQ_DOT_MAX,
   FREQ_LOG_MAX,
 } from "../lib/constants";
+import { graphRef } from "../lib/graphRef";
 
 type Pos = { id: string; x: number; y: number };
 
@@ -450,8 +451,8 @@ export default function Graph() {
       const p = conv(node.x, node.y);
       return p ? { x: p.x, y: p.y } : null;
     };
-    useStore.getState().setFocusScreenPosGetter(getter);
-    return () => useStore.getState().setFocusScreenPosGetter(null);
+    graphRef.getFocusScreenPos = getter;
+    return () => { graphRef.getFocusScreenPos = null; };
   }, [data]);
 
   useEffect(() => {
@@ -469,8 +470,8 @@ export default function Graph() {
         fg.zoomToFit(transitionMs, GRAPH_FIT_PADDING);
       }
     };
-    useStore.getState().setResetZoom(reset);
-    return () => useStore.getState().setResetZoom(null);
+    graphRef.resetZoom = reset;
+    return () => { graphRef.resetZoom = null; };
   }, [data]);
 
   // Deep-link focus on page load. App.tsx captures the initial #word=

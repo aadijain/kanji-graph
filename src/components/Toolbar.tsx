@@ -1,4 +1,5 @@
 import { useStore } from "../store";
+import { graphRef } from "../lib/graphRef";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -95,7 +96,6 @@ interface ToolbarProps {
 export default function Toolbar({ onSearch, onSettings, onInfo }: ToolbarProps) {
   const graph = useStore((s) => s.graph);
   const setFocused = useStore((s) => s.setFocused);
-  const resetZoom = useStore((s) => s.resetZoom);
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
 
@@ -133,7 +133,7 @@ export default function Toolbar({ onSearch, onSettings, onInfo }: ToolbarProps) 
           <button
             type="button"
             aria-label="Reset zoom"
-            onClick={() => resetZoom?.()}
+            onClick={() => graphRef.resetZoom?.()}
             className="btn-icon"
           >
             <FitIcon />
