@@ -289,7 +289,7 @@ export default function App() {
               type="button"
               aria-label="Search"
               onClick={() => { setSearchOpen(true); setInfoOpen(false); setSettingsOpen(false); }}
-              className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+              className="btn-icon"
             >
               <SearchIcon />
             </button>
@@ -304,7 +304,7 @@ export default function App() {
                 const nodes = graph.nodes;
                 setFocused(nodes[Math.floor(Math.random() * nodes.length)]);
               }}
-              className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+              className="btn-icon"
             >
               <ShuffleIcon />
             </button>
@@ -316,7 +316,7 @@ export default function App() {
               type="button"
               aria-label="Reset zoom"
               onClick={() => resetZoom?.()}
-              className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+              className="btn-icon"
             >
               <FitIcon />
             </button>
@@ -327,7 +327,7 @@ export default function App() {
             type="button"
             aria-label={settings.theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
             onClick={() => updateSettings({ theme: settings.theme === "light" ? "dark" : "light" })}
-            className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+            className="btn-icon"
           >
             {settings.theme === "light" ? <MoonIcon /> : <SunIcon />}
           </button>
@@ -337,7 +337,7 @@ export default function App() {
             type="button"
             aria-label="Settings"
             onClick={() => { setSettingsOpen(true); setInfoOpen(false); }}
-            className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+            className="btn-icon"
           >
             <GearIcon />
           </button>
@@ -347,7 +347,7 @@ export default function App() {
             type="button"
             aria-label="About"
             onClick={() => { setInfoOpen(true); setSettingsOpen(false); }}
-            className="rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100"
+            className="btn-icon"
           >
             <InfoIcon />
           </button>

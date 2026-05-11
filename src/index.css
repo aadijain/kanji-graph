@@ -50,3 +50,15 @@ body {
 .jp {
   font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
 }
+
+@layer components {
+  /* Shared toolbar icon button style (App.tsx toolbar). */
+  .btn-icon {
+    @apply rounded-md border border-ink-700 bg-ink-900 p-2 text-ink-400 transition-colors hover:border-ink-500 hover:text-ink-100;
+  }
+
+  /* Full-screen dimmed backdrop for modal dialogs. */
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70;
+  }
+}

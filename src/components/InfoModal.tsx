@@ -1,5 +1,6 @@
 import { useStore } from "../store";
 import { hexToRgba, EDGE_ENTRIES } from "../lib/constants";
+import CloseButton from "./CloseButton";
 
 interface Props {
   onClose: () => void;
@@ -39,23 +40,14 @@ export default function InfoModal({ onClose }: Props) {
   const edgeColors = useStore((s) => s.settings.edgeColors);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70"
+      className="modal-backdrop"
       onClick={onClose}
     >
       <div
         className="relative mx-4 w-full max-w-xl rounded-xl border border-ink-700 bg-ink-900 p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded p-1 text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-100"
-          aria-label="Close"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
+        <CloseButton onClick={onClose} className="absolute right-4 top-4" />
 
         <h2 className="text-base font-semibold text-accent-paper">Kanji Graph</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-300">
