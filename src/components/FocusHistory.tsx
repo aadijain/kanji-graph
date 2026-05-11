@@ -32,7 +32,7 @@ export default function FocusHistory() {
   if (!showFocusHistory || focusHistory.length < 2) return null;
 
   return (
-    <div className="flex items-center gap-1 rounded-md bg-ink-900 px-3 py-1.5 text-xs">
+    <div className="flex items-center gap-1 rounded-lg bg-ink-900 px-3 py-1.5 text-xs">
       {focusHistory.map((entry, i) => {
         const isCurrent = i === focusHistory.length - 1;
         return (

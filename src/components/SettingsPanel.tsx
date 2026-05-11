@@ -223,13 +223,13 @@ export default function SettingsPanel({ onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-ink-800 px-5 py-3.5">
+        <div className="flex items-center justify-between border-b border-ink-800 px-6 py-3.5">
           <h2 className="text-sm font-semibold text-accent-paper">Settings</h2>
           <CloseButton onClick={onClose} />
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto px-5 py-4 space-y-4">
+        <div className="overflow-y-auto px-6 py-4 space-y-4">
 
           {/* Connection types */}
           <Section title="Connection types">
