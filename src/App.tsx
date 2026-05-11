@@ -113,7 +113,7 @@ function FpsOverlay() {
   }, [tick]);
 
   return (
-    <div className="pointer-events-none absolute right-6 top-2 z-10 rounded bg-ink-900/80 px-2 py-1 font-mono text-[11px] text-accent-paper">
+    <div className="pointer-events-none absolute right-6 top-2 z-10 rounded bg-ink-900/80 px-2 py-1 font-mono text-2xs text-accent-paper">
       {fps} fps
     </div>
   );

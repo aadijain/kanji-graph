@@ -138,7 +138,7 @@ export default function DetailsPanel() {
           <SpeakerIcon className={`h-4 w-4 ${playing ? "animate-pulse" : ""}`} />
         </button>
         {entries.length > 1 && (
-          <div className="ml-auto flex items-center gap-1 text-[11px] text-ink-500">
+          <div className="ml-auto flex items-center gap-1 text-2xs text-ink-500">
             <button
               type="button"
               aria-label="Previous entry"
@@ -163,14 +163,14 @@ export default function DetailsPanel() {
           <li key={i}>{g}</li>
         ))}
       </ul>
-      <div className="mt-3 flex gap-3 text-[11px] uppercase tracking-wide text-ink-500">
+      <div className="mt-3 flex gap-3 text-2xs uppercase tracking-wide text-ink-500">
         {entry.jlpt != null && <span>JLPT N{entry.jlpt}</span>}
         {activeNode.frequency != null && <span>rank #{activeNode.frequency}</span>}
       </div>
 
       {connections && (connections.byKanji.size > 0 || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+          <div className="text-2xs uppercase tracking-wide text-ink-500">
             shared kanji
           </div>
           <div className="mt-2 space-y-2">
@@ -212,7 +212,7 @@ export default function DetailsPanel() {
 
       {connections && (connections.similarByKanji.size > 0 || connections.highFreq.some((c) => c.type === "similar-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+          <div className="text-2xs uppercase tracking-wide text-ink-500">
             similar kanji
           </div>
           <div className="mt-2 space-y-2">
@@ -250,7 +250,7 @@ export default function DetailsPanel() {
 
       {connections && connections.sameReading.length > 0 && (
         <div className={`mt-4 border-t border-ink-700 pt-3 transition-opacity ${hoveredKanji ? "opacity-30" : "opacity-100"}`}>
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+          <div className="text-2xs uppercase tracking-wide text-ink-500">
             same reading
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
@@ -262,7 +262,7 @@ export default function DetailsPanel() {
 
       {connections && connections.alternateSpellings.length > 0 && (
         <div className={`mt-4 border-t border-ink-700 pt-3 transition-opacity ${hoveredKanji ? "opacity-30" : "opacity-100"}`}>
-          <div className="text-[11px] uppercase tracking-wide text-ink-500">
+          <div className="text-2xs uppercase tracking-wide text-ink-500">
             alternate spelling
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
