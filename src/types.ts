@@ -58,6 +58,7 @@ export interface NeighborData {
   primaryType: EdgeType;
   types: EdgeType[];
   similarKanjiMap: Map<string, string>;
+  sameReadingVia: string[];
 }
 
 export const edgeId = (e: Edge) => {

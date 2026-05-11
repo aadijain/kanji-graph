@@ -195,7 +195,7 @@ export default function Graph() {
 
   // For each neighbor of focused: bridging kanji + which edge type contributed each.
   const neighborData = useMemo(() => {
-    const map = new Map<string, { viaSet: Set<string>; kanjiType: Map<string, Edge["type"]>; types: Edge["type"][]; similarPairs: Map<string, string> }>();
+    const map = new Map<string, { viaSet: Set<string>; kanjiType: Map<string, Edge["type"]>; types: Edge["type"][]; similarPairs: Map<string, string>; sameReadingVia: string[] }>();
     if (!focused) return new Map<string, NeighborData>();
     for (const e of graph.edges as Edge[]) {
       if (!edgeVisibility[e.type]) continue;
@@ -203,9 +203,11 @@ export default function Graph() {
       const t = endpointId(e.target);
       if (s !== focused.id && t !== focused.id) continue;
       const other = s === focused.id ? t : s;
-      const d = map.get(other) ?? { viaSet: new Set(), kanjiType: new Map(), types: [] as Edge["type"][], similarPairs: new Map() };
+      const d = map.get(other) ?? { viaSet: new Set(), kanjiType: new Map(), types: [] as Edge["type"][], similarPairs: new Map(), sameReadingVia: [] as string[] };
       d.types.push(e.type);
-      if (e.type !== "same-reading") {
+      if (e.type === "same-reading") {
+        d.sameReadingVia.push(...e.via);
+      } else {
         for (const k of e.via) {
           d.viaSet.add(k);
           if (!d.kanjiType.has(k)) d.kanjiType.set(k, e.type);
@@ -221,7 +223,7 @@ export default function Graph() {
     const result = new Map<string, NeighborData>();
     for (const [id, d] of map) {
       const primaryType = EDGE_TYPE_PRIORITY.find((t) => d.types.includes(t)) ?? d.types[0];
-      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types, similarKanjiMap: d.similarPairs });
+      result.set(id, { via: [...d.viaSet], kanjiType: d.kanjiType, primaryType, types: d.types, similarKanjiMap: d.similarPairs, sameReadingVia: d.sameReadingVia });
     }
     return result;
   }, [focused, graph.edges, edgeVisibility]);

@@ -30,7 +30,7 @@ interface Props {
   settings: Settings;
   hoveredId: string | null;
   hoveredKanji: string | null;
-  hoveredReading: boolean;
+  hoveredReading: string | null;
   COLORS: typeof NODE_COLORS;
   setHovered: (node: WordNode | null) => void;
   setFocused: (node: WordNode) => void;
@@ -115,9 +115,8 @@ export default function GraphCanvas({
         } else if (focused && isNeighbor) {
           const nd = neighborData.get(n.id);
           const via = nd?.via ?? [];
-          const isSameReading = nd?.types.includes("same-reading") ?? false;
           const dimByKanji = !!hoveredKanji && !via.includes(hoveredKanji);
-          const dimByReading = hoveredReading && !isSameReading;
+          const dimByReading = !!hoveredReading && !nd?.sameReadingVia.includes(hoveredReading);
           const dotColor = hoveredKanji
             ? settings.edgeColors[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"]
             : hoveredReading
@@ -150,13 +149,11 @@ export default function GraphCanvas({
 
         let baseColor = COLORS.default;
         let weight = 500;
-        let highlightSet: Set<string> | undefined;
-        let highlightColor = COLORS.bridgeKanji;
+        let highlights: Map<string, string> | undefined;
 
         if (focused && isNeighbor) {
           const nd = neighborData.get(n.id);
           const via = nd?.via ?? [];
-          const isSameReading = nd?.types.includes("same-reading") ?? false;
           if (hoveredKanji) {
             if (via.includes(hoveredKanji)) {
               baseColor = COLORS.highlight;
@@ -167,18 +164,27 @@ export default function GraphCanvas({
               const labelKanji = edgeType === "similar-kanji"
                 ? (nd?.similarKanjiMap.get(hoveredKanji) ?? hoveredKanji)
                 : hoveredKanji;
-              highlightSet = new Set([labelKanji]);
-              highlightColor = settings.edgeColors[edgeType];
+              highlights = new Map([[labelKanji, settings.edgeColors[edgeType]]]);
             } else {
               baseColor = COLORS.muted;
             }
           } else if (hoveredReading) {
-            baseColor = isSameReading ? COLORS.highlight : COLORS.muted;
-            if (isSameReading) weight = 600;
+            const matchesReading = !!nd?.sameReadingVia.includes(hoveredReading);
+            baseColor = matchesReading ? COLORS.highlight : COLORS.muted;
+            if (matchesReading) weight = 600;
           } else {
+            // Highlight each bridging kanji in its own edge-type color.
+            // For similar-kanji bridges, color the partner kanji that appears in
+            // the neighbor's word (not the focused word's kanji).
             baseColor = COLORS.neighbor;
-            highlightSet = new Set(via);
-            highlightColor = settings.edgeColors[nd?.primaryType ?? "shared-kanji"];
+            highlights = new Map();
+            for (const k of via) {
+              const t = nd?.kanjiType.get(k) ?? nd?.primaryType ?? "shared-kanji";
+              const labelKanji = t === "similar-kanji"
+                ? (nd?.similarKanjiMap.get(k) ?? k)
+                : k;
+              highlights.set(labelKanji, settings.edgeColors[t]);
+            }
           }
         } else if (isHoverNeighbor) {
           baseColor = COLORS.neighbor;
@@ -194,8 +200,7 @@ export default function GraphCanvas({
           fontSize,
           baseColor,
           weight,
-          highlightSet,
-          highlightColor,
+          highlights,
         );
       }}
       nodePointerAreaPaint={(node, color, ctx, globalScale) => {
@@ -221,7 +226,7 @@ export default function GraphCanvas({
             if (l.type === "same-reading" || !l.via.includes(hoveredKanji)) return hexToRgba(hex, 0.18);
           }
           if (hoveredReading) {
-            if (l.type !== "same-reading") return hexToRgba(hex, 0.18);
+            if (l.type !== "same-reading" || !l.via.includes(hoveredReading)) return hexToRgba(hex, 0.18);
           }
           return hexToRgba(hex, 0.85);
         }
@@ -236,7 +241,7 @@ export default function GraphCanvas({
         if (focused) {
           if (s !== focused.id && t !== focused.id) return 0;
           if (hoveredKanji && (l.type === "same-reading" || !l.via.includes(hoveredKanji))) return 0.5;
-          if (hoveredReading && l.type !== "same-reading") return 0.5;
+          if (hoveredReading && (l.type !== "same-reading" || !l.via.includes(hoveredReading))) return 0.5;
           return 1.6;
         }
         if (!hoveredId) return 0.4;

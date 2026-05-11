@@ -120,10 +120,14 @@ export default function FocusOverlay() {
                     playPronunciation(focused.word, e.reading).finally(() => { playingRef.current = false; });
                   }
                 }}
-                onMouseEnter={() => setHoveredReading(true)}
-                onMouseLeave={() => setHoveredReading(false)}
+                onMouseEnter={() => setHoveredReading(e.reading)}
+                onMouseLeave={() => setHoveredReading(null)}
                 className={`cursor-pointer text-sm transition duration-150 ${isActive ? "" : "text-muted hover:text-secondary"}`}
-                style={isActive ? { color: hoveredReading ? edgeColors["same-reading"] : undefined } : undefined}
+                style={
+                  !hoveredKanji && (hoveredReading ? hoveredReading === e.reading : isActive)
+                    ? { color: edgeColors["same-reading"] }
+                    : undefined
+                }
               >
                 {e.reading}
               </span>

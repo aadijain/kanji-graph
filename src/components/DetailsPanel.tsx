@@ -30,6 +30,7 @@ export default function DetailsPanel() {
   const graph = useStore((s) => s.graph);
   const hoveredKanji = useStore((s) => s.hoveredKanji);
   const hoveredReading = useStore((s) => s.hoveredReading);
+  const setHoveredReading = useStore((s) => s.setHoveredReading);
   const edgeColors = useStore((s) => s.settings.edgeColors);
   const audioAutoPlay = useStore((s) => s.settings.audioAutoPlay);
   const [playing, setPlaying] = useState(false);
@@ -65,10 +66,11 @@ export default function DetailsPanel() {
     if (!activeNode || !graph) return null;
     const byKanji = new Map<string, string[]>();
     for (const k of activeNode.kanji) byKanji.set(k, []);
+    // keyed by `${word}:${reading}` to allow one word per reading (multi-reading pairs)
     const sameReadingSet = new Set<string>();
-    const sameReading: string[] = [];
+    const sameReading: { word: string; reading: string }[] = [];
     const altSpellingSet = new Set<string>();
-    const alternateSpellings: string[] = [];
+    const alternateSpellings: { word: string; reading: string }[] = [];
     // key: neighbor kanji (K2); value: activeNode-side kanji (K1) + neighbor words
     const similarByKanji = new Map<string, { activeNodeKanji: string; others: string[] }>();
     for (const e of graph.edges as Edge[]) {
@@ -79,9 +81,11 @@ export default function DetailsPanel() {
       if (e.type === "shared-kanji") {
         for (const k of e.via) if (byKanji.has(k)) byKanji.get(k)!.push(other);
       } else if (e.type === "same-reading") {
-        if (!sameReadingSet.has(other)) { sameReadingSet.add(other); sameReading.push(other); }
+        const reading = e.via[0];
+        const key = `${other}:${reading}`;
+        if (!sameReadingSet.has(key)) { sameReadingSet.add(key); sameReading.push({ word: other, reading }); }
       } else if (e.type === "alternate-spelling") {
-        if (!altSpellingSet.has(other)) { altSpellingSet.add(other); alternateSpellings.push(other); }
+        if (!altSpellingSet.has(other)) { altSpellingSet.add(other); alternateSpellings.push({ word: other, reading: e.via[0] }); }
       } else if (e.type === "similar-kanji") {
         const activeNodeKanji = e.via.find((k) => activeNode.kanji.includes(k));
         for (const k of e.via) {
@@ -104,7 +108,14 @@ export default function DetailsPanel() {
   if (!activeNode) return null;
 
   const entries = getNodeEntries(activeNode);
-  const rawIdx = isActiveNodeFocused ? focusedEntryIdx : neighborEntryIdx;
+  // While hovering a reading on the focused word, surface that entry instead of
+  // the selected one so the panel mirrors what the overlay is highlighting.
+  const hoveredEntryIdx = isActiveNodeFocused && hoveredReading
+    ? entries.findIndex((e) => e.reading === hoveredReading)
+    : -1;
+  const rawIdx = hoveredEntryIdx >= 0
+    ? hoveredEntryIdx
+    : (isActiveNodeFocused ? focusedEntryIdx : neighborEntryIdx);
   const clampedIdx = Math.min(rawIdx, entries.length - 1);
   const entry = entries[clampedIdx];
 
@@ -258,7 +269,15 @@ export default function DetailsPanel() {
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
                style={{ color: edgeColors["same-reading"] }}>
-            {connections.sameReading.map((o) => <span key={o}>{o}</span>)}
+            {connections.sameReading
+              .filter((c) => !hoveredReading || c.reading === hoveredReading)
+              .map((c) => (
+                <span
+                  key={`${c.word}:${c.reading}`}
+                  onMouseEnter={() => setHoveredReading(c.reading)}
+                  onMouseLeave={() => setHoveredReading(null)}
+                >{c.word}</span>
+              ))}
           </div>
         </div>
       )}
@@ -270,7 +289,15 @@ export default function DetailsPanel() {
           </div>
           <div className="jp mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-sm"
                style={{ color: edgeColors["alternate-spelling"] }}>
-            {connections.alternateSpellings.map((o) => <span key={o}>{o}</span>)}
+            {connections.alternateSpellings
+              .filter((c) => !hoveredReading || c.reading === hoveredReading)
+              .map((c) => (
+                <span
+                  key={`${c.word}:${c.reading}`}
+                  onMouseEnter={() => setHoveredReading(c.reading)}
+                  onMouseLeave={() => setHoveredReading(null)}
+                >{c.word}</span>
+              ))}
           </div>
         </div>
       )}

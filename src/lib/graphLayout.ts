@@ -45,8 +45,7 @@ export function drawLabel(
   fontSize: number,
   baseColor: string,
   weight: number,
-  highlightSet: Set<string> | undefined,
-  highlightColor: string,
+  highlights?: Map<string, string>,
 ) {
   const chars = [...word];
   ctx.font = `${weight} ${fontSize}px ${FONT_FAMILY}`;
@@ -57,7 +56,7 @@ export function drawLabel(
   let x = cx - total / 2;
   for (let i = 0; i < chars.length; i++) {
     const ch = chars[i];
-    ctx.fillStyle = highlightSet?.has(ch) ? highlightColor : baseColor;
+    ctx.fillStyle = highlights?.get(ch) ?? baseColor;
     ctx.fillText(ch, x, cy);
     x += widths[i];
   }
