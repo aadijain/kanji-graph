@@ -84,14 +84,14 @@ export const NODE_SIZE_VALUES: Record<NodeSize, number> = {
   large: 24,
 };
 
-const KEY = SETTINGS_STORAGE_KEY;
-const KEY_V2 = SETTINGS_LEGACY_KEY_V2;
-const KEY_V1 = SETTINGS_LEGACY_KEY;
-
-export function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
+// Each entry: the localStorage key for that schema version and a function that
+// reads the raw JSON string and returns a full Settings object for the current
+// version. Ordered newest-first; the first matching key wins.
+// To add v4: prepend a new entry with SETTINGS_STORAGE_KEY_V4 and its transform.
+const MIGRATIONS: { key: string; migrate(raw: string): Settings }[] = [
+  {
+    key: SETTINGS_STORAGE_KEY,
+    migrate(raw) {
       const p = JSON.parse(raw) as Partial<Settings>;
       return {
         ...DEFAULT_SETTINGS,
@@ -99,11 +99,13 @@ export function loadSettings(): Settings {
         edgeVisibility: { ...DEFAULT_SETTINGS.edgeVisibility, ...p.edgeVisibility },
         edgeColors: { ...DEFAULT_SETTINGS.edgeColors, ...p.edgeColors },
       };
-    }
-    // Migrate from v2: carry all preserved fields; theme defaults to "dark".
-    const rawV2 = localStorage.getItem(KEY_V2);
-    if (rawV2) {
-      const v2 = JSON.parse(rawV2) as Partial<Omit<Settings, "theme">>;
+    },
+  },
+  {
+    // v2 → v3: theme was added; carry all preserved fields but default theme to "dark".
+    key: SETTINGS_LEGACY_KEY_V2,
+    migrate(raw) {
+      const v2 = JSON.parse(raw) as Partial<Omit<Settings, "theme">>;
       return {
         ...DEFAULT_SETTINGS,
         ...v2,
@@ -111,11 +113,13 @@ export function loadSettings(): Settings {
         edgeColors: { ...DEFAULT_SETTINGS.edgeColors },
         theme: "dark",
       };
-    }
-    // Migrate from v1: preserve the three fields that survived the redesign.
-    const rawV1 = localStorage.getItem(KEY_V1);
-    if (rawV1) {
-      const v1 = JSON.parse(rawV1) as Record<string, unknown>;
+    },
+  },
+  {
+    // v1 → v3: only three fields survived the v1→v2 redesign.
+    key: SETTINGS_LEGACY_KEY,
+    migrate(raw) {
+      const v1 = JSON.parse(raw) as Record<string, unknown>;
       return {
         ...DEFAULT_SETTINGS,
         ...(typeof v1.audioAutoPlay === "boolean" && { audioAutoPlay: v1.audioAutoPlay }),
@@ -125,6 +129,15 @@ export function loadSettings(): Settings {
           ...(v1.edgeVisibility as Partial<Record<EdgeType, boolean>> | undefined),
         },
       };
+    },
+  },
+];
+
+export function loadSettings(): Settings {
+  try {
+    for (const { key, migrate } of MIGRATIONS) {
+      const raw = localStorage.getItem(key);
+      if (raw) return migrate(raw);
     }
   } catch {
     // fall through to defaults
@@ -133,5 +146,5 @@ export function loadSettings(): Settings {
 }
 
 export function saveSettings(s: Settings) {
-  localStorage.setItem(KEY, JSON.stringify(s));
+  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(s));
 }
