@@ -25,6 +25,9 @@ import {
   NODE_REL_SIZE,
   FOCUS_RING_RADIUS_MULTIPLIER,
   RESIZE_FIT_MS,
+  GRAPH_FIT_PADDING,
+  EDGE_CURVATURE_STEP,
+  FOCUS_NODE_RADIUS,
   FOCUS_SHADOW_BLUR,
   FREQ_DOT_MIN,
   FREQ_DOT_MAX,
@@ -219,7 +222,7 @@ export default function Graph() {
         const sorted = [...edges].sort(
           (a, b) => EDGE_TYPE_PRIORITY.indexOf(a.type) - EDGE_TYPE_PRIORITY.indexOf(b.type)
         );
-        const step = 0.12;
+        const step = EDGE_CURVATURE_STEP;
         const start = -((sorted.length - 1) * step) / 2;
         sorted.forEach((e, i) => curvMap.set(e, start + i * step));
       }
@@ -402,7 +405,7 @@ export default function Graph() {
         fg.centerAt(snap.x, snap.y, transitionMs);
         fg.zoom(snap.zoom, transitionMs);
       } else {
-        fg.zoomToFit(transitionMs, 80);
+        fg.zoomToFit(transitionMs, GRAPH_FIT_PADDING);
       }
 
       cancelTweenRef.current = tween({
@@ -463,7 +466,7 @@ export default function Graph() {
         fg.centerAt(node.x, node.y, transitionMs);
         fg.zoom(FOCUS_ZOOM_VALUES[settings.focusZoom], transitionMs);
       } else {
-        fg.zoomToFit(transitionMs, 80);
+        fg.zoomToFit(transitionMs, GRAPH_FIT_PADDING);
       }
     };
     useStore.getState().setResetZoom(reset);
@@ -505,7 +508,7 @@ export default function Graph() {
   // Resize: refit only in graph view.
   useEffect(() => {
     const handle = () => {
-      if (!focused) fgRef.current?.zoomToFit(RESIZE_FIT_MS, 80);
+      if (!focused) fgRef.current?.zoomToFit(RESIZE_FIT_MS, GRAPH_FIT_PADDING);
     };
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
@@ -570,7 +573,7 @@ export default function Graph() {
         const baseR = settings.nodeSizeByFrequency && n.frequency != null
           ? freqDotR(n.frequency)
           : 3.5;
-        const dotR = (isFocus ? 5 : isHovered ? 5 : baseR) / globalScale;
+        const dotR = ((isFocus || isHovered) ? FOCUS_NODE_RADIUS : baseR) / globalScale;
 
         // dot
         ctx.beginPath();

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useStore } from "../store";
-import { EDGE_TYPE_PRIORITY } from "../lib/constants";
+import { EDGE_TYPE_PRIORITY, FOCUS_HISTORY_NO_EDGE_COLOR } from "../lib/constants";
 import { endpointId, type Edge, type EdgeType } from "../types";
 
 export default function FocusHistory() {
@@ -24,7 +24,7 @@ export default function FocusHistory() {
         if ((s === aId && t === bId) || (s === bId && t === aId)) types.add(e.type);
       }
       const primary = EDGE_TYPE_PRIORITY.find((t) => types.has(t));
-      colors.push(primary ? edgeColors[primary] : "#4a4a5a");
+      colors.push(primary ? edgeColors[primary] : FOCUS_HISTORY_NO_EDGE_COLOR);
     }
     return colors;
   }, [focusHistory, graph, edgeColors]);

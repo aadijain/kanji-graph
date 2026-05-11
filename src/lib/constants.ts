@@ -106,7 +106,15 @@ export const NODE_REL_SIZE = 4;
 export const FOCUS_RING_RADIUS_MULTIPLIER = 2.4;
 export const FOCUS_SHADOW_BLUR = 16;
 export const RESIZE_FIT_MS = 400;
+// Pixel padding passed to zoomToFit() so nodes aren't clipped at the viewport edge.
+export const GRAPH_FIT_PADDING = 80;
+// Per-edge curvature offset when multiple edge types connect the same word pair.
+export const EDGE_CURVATURE_STEP = 0.12;
+// Dot radius override for focused and hovered nodes (overrides frequency-based sizing).
+export const FOCUS_NODE_RADIUS = 5;
 export const FOCUS_HISTORY_MAX = 10;
+// Separator color for focus-history items with no direct edge between them.
+export const FOCUS_HISTORY_NO_EDGE_COLOR = "#4a4a5a";
 // Width of the left back-to-graph strip in focus mode (px).
 export const BACK_STRIP_WIDTH = 80;
 // Left offset for panels that must clear the back strip (strip + 16px gap).
