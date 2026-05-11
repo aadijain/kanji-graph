@@ -40,22 +40,25 @@ export default function DetailsPanel() {
   const isActiveNodeFocused = activeNode?.id === focused?.id;
 
   // For neighbors: auto-select the entry matching the same-reading edge to focused.
+  // Read focused/graph imperatively so this only re-runs on active-node identity
+  // change, not on every graph update or focus pointer change.
   useEffect(() => {
-    if (!isActiveNodeFocused && activeNode && focused && graph) {
-      const edge = (graph.edges as Edge[]).find((e) => {
+    const { hovered: h, focused: f, graph: g } = useStore.getState();
+    const active = h ?? f;
+    if (active && f && g && active.id !== f.id) {
+      const edge = (g.edges as Edge[]).find((e) => {
         const s = endpointId(e.source);
         const t = endpointId(e.target);
         return e.type === "same-reading" &&
-          ((s === activeNode.id && t === focused.id) || (s === focused.id && t === activeNode.id));
+          ((s === active.id && t === f.id) || (s === f.id && t === active.id));
       });
       if (edge) {
-        const idx = getNodeEntries(activeNode).findIndex((e) => e.reading === edge.via[0]);
+        const idx = getNodeEntries(active).findIndex((e) => e.reading === edge.via[0]);
         setNeighborEntryIdx(idx >= 0 ? idx : 0);
         return;
       }
     }
     setNeighborEntryIdx(0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeNode?.id]);
 
   const connections = useMemo(() => {

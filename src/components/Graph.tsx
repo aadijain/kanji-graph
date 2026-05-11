@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
 import { useStore } from "../store";
 import { endpointId, type Edge, type EdgeType, type WordNode } from "../types";
@@ -36,6 +36,10 @@ import {
 import { graphRef } from "../lib/graphRef";
 
 type Pos = { id: string; x: number; y: number };
+// d3Force() returns `object | undefined`; the library types omit the actual
+// D3 force API. These slices cover what we use and avoid `as any`.
+type D3LinkForce   = { distance(d: number): void };
+type D3ChargeForce = { strength(s: number): void };
 
 function freqDotR(rank: number): number {
   const normalized = Math.max(0, 1 - Math.log(rank) / Math.log(FREQ_LOG_MAX));
@@ -189,12 +193,12 @@ export default function Graph() {
     const fg = fgRef.current;
     if (!fg) return;
     const { linkDistance, chargeStrength } = LAYOUT_DENSITY_VALUES[settings.layoutDensity];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (fg.d3Force("link") as any)?.distance?.(linkDistance);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (fg.d3Force("charge") as any)?.strength?.(chargeStrength);
-    if (!focused) fg.d3ReheatSimulation();
-  }, [settings.layoutDensity]); // eslint-disable-line react-hooks/exhaustive-deps
+    (fg.d3Force("link") as D3LinkForce | undefined)?.distance(linkDistance);
+    (fg.d3Force("charge") as D3ChargeForce | undefined)?.strength(chargeStrength);
+    // Read focused imperatively so this effect only runs on density change,
+    // not on every focus enter/exit.
+    if (!useStore.getState().focused) fg.d3ReheatSimulation();
+  }, [settings.layoutDensity]);
 
   const data = useMemo(() => {
     const cached = loadLayout();
@@ -432,6 +436,8 @@ export default function Graph() {
     return () => {
       cancelTweenRef.current?.();
     };
+    // Narrowed dep: focused?.id only (not focused or data) so the tween does
+    // not re-fire on every node position update while the simulation runs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focused?.id]);
 
@@ -484,7 +490,7 @@ export default function Graph() {
   // tick 1 when nodes had only their phyllotaxis seed positions, so the
   // radial tween started from a stale layout — neighbors looked like they
   // never moved.)
-  const tryApplyPendingFocus = () => {
+  const tryApplyPendingFocus = useCallback(() => {
     const pending = useStore.getState().pendingFocusWord;
     if (!pending) return;
     const nodes = data.nodes as WordNode[];
@@ -499,12 +505,11 @@ export default function Graph() {
     if (!allReady) return;
     useStore.getState().setPendingFocusWord(null);
     setFocused(node);
-  };
+  }, [data, setFocused]);
 
   useEffect(() => {
     tryApplyPendingFocus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [tryApplyPendingFocus]);
 
   // Resize: refit only in graph view.
   useEffect(() => {
