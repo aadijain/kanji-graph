@@ -7,7 +7,7 @@ import { loadFrequencyMap } from "./dict/freq.ts";
 import type { DictionarySource, WordEntry } from "./dict/source.ts";
 import { KANJI_RE, WORDS_FILE, SIMILAR_KANJI_FILE, GRAPH_OUTPUT, BRIDGE_KANJI_MAX_WORDS } from "./constants.ts";
 import { deinflect } from "../src/lib/deinflect.ts";
-import type { EdgeType } from "../src/types.ts";
+import type { EdgeType, HighFreqConnection, GraphData } from "../src/types.ts";
 
 function chain(...sources: DictionarySource[]): DictionarySource {
   return {
@@ -30,22 +30,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isKanji = (ch: string) => KANJI_RE.test(ch);
 const kanjiOf = (word: string) => [...word].filter(isKanji);
 
+// Build-time narrower variants: source/target are always string IDs (force-graph
+// mutates them to node objects at runtime); WordNode has no force-graph position fields.
 type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
 type Edge = { source: string; target: string; type: EdgeType; via: string[] };
-type HighFreqConn = {
-  type: "shared-kanji" | "similar-kanji";
-  kanji: string;
-  partnerKanji?: string;
-  words: string[];
-  perWordCount: number;
-};
-type Graph = {
-  nodes: WordNode[];
-  edges: Edge[];
-  stats: { words: number; edges: number; kanji: number; hiddenEdges?: Partial<Record<string, number>> };
-  highFreqConnections?: HighFreqConn[];
-  generatedAt: string;
-};
 
 function readWordList(path: string): string[] {
   return readFileSync(path, "utf8")
@@ -275,7 +263,7 @@ function buildAlternateSpellingEdges(nodes: WordNode[]): Edge[] {
   return edges;
 }
 
-// Builds HighFreqConn entries for both shared-kanji and similar-kanji types.
+// Builds HighFreqConnection entries for both shared-kanji and similar-kanji types.
 // For shared-kanji: one entry per high-freq kanji (kanji = display kanji).
 // For similar-kanji: two entries per pair (one for each side), so each word
 // can look up its entry and find its dim-kanji (its own side) and display
@@ -290,8 +278,8 @@ function buildHighFreqConnections(
   similar: Map<string, Set<string>>,
   nodes: WordNode[],
   sharedPairSet: Set<string>,
-): { connections: HighFreqConn[]; hiddenShared: number; hiddenSimilar: number } {
-  const connections: HighFreqConn[] = [];
+): { connections: HighFreqConnection[]; hiddenShared: number; hiddenSimilar: number } {
+  const connections: HighFreqConnection[] = [];
   let hiddenShared = 0;
   let hiddenSimilar = 0;
 
@@ -393,7 +381,7 @@ async function main() {
   if (hiddenShared) hiddenEdges["shared-kanji"] = hiddenShared;
   if (hiddenSimilar) hiddenEdges["similar-kanji"] = hiddenSimilar;
 
-  const graph: Graph = {
+  const graph: GraphData = {
     nodes,
     edges,
     stats: {
