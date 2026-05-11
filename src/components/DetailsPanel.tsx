@@ -35,43 +35,43 @@ export default function DetailsPanel() {
   const [playing, setPlaying] = useState(false);
   const [neighborEntryIdx, setNeighborEntryIdx] = useState(0);
 
-  const subject = hovered ?? focused;
-  const isFocusedSubject = subject?.id === focused?.id;
+  const activeNode = hovered ?? focused;
+  const isActiveNodeFocused = activeNode?.id === focused?.id;
 
   // For neighbors: auto-select the entry matching the same-reading edge to focused.
   useEffect(() => {
-    if (!isFocusedSubject && subject && focused && graph) {
+    if (!isActiveNodeFocused && activeNode && focused && graph) {
       const edge = (graph.edges as Edge[]).find((e) => {
         const s = endpointId(e.source);
         const t = endpointId(e.target);
         return e.type === "same-reading" &&
-          ((s === subject.id && t === focused.id) || (s === focused.id && t === subject.id));
+          ((s === activeNode.id && t === focused.id) || (s === focused.id && t === activeNode.id));
       });
       if (edge) {
-        const idx = getNodeEntries(subject).findIndex((e) => e.reading === edge.via[0]);
+        const idx = getNodeEntries(activeNode).findIndex((e) => e.reading === edge.via[0]);
         setNeighborEntryIdx(idx >= 0 ? idx : 0);
         return;
       }
     }
     setNeighborEntryIdx(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject?.id]);
+  }, [activeNode?.id]);
 
   const connections = useMemo(() => {
-    if (!subject || !graph) return null;
+    if (!activeNode || !graph) return null;
     const byKanji = new Map<string, string[]>();
-    for (const k of subject.kanji) byKanji.set(k, []);
+    for (const k of activeNode.kanji) byKanji.set(k, []);
     const sameReadingSet = new Set<string>();
     const sameReading: string[] = [];
     const altSpellingSet = new Set<string>();
     const alternateSpellings: string[] = [];
-    // key: neighbor kanji (K2); value: subject-side kanji (K1) + neighbor words
-    const similarByKanji = new Map<string, { subjectKanji: string; others: string[] }>();
+    // key: neighbor kanji (K2); value: activeNode-side kanji (K1) + neighbor words
+    const similarByKanji = new Map<string, { activeNodeKanji: string; others: string[] }>();
     for (const e of graph.edges as Edge[]) {
       const s = endpointId(e.source);
       const t = endpointId(e.target);
-      if (s !== subject.id && t !== subject.id) continue;
-      const other = s === subject.id ? t : s;
+      if (s !== activeNode.id && t !== activeNode.id) continue;
+      const other = s === activeNode.id ? t : s;
       if (e.type === "shared-kanji") {
         for (const k of e.via) if (byKanji.has(k)) byKanji.get(k)!.push(other);
       } else if (e.type === "same-reading") {
@@ -79,10 +79,10 @@ export default function DetailsPanel() {
       } else if (e.type === "alternate-spelling") {
         if (!altSpellingSet.has(other)) { altSpellingSet.add(other); alternateSpellings.push(other); }
       } else if (e.type === "similar-kanji") {
-        const subjectKanji = e.via.find((k) => subject.kanji.includes(k));
+        const activeNodeKanji = e.via.find((k) => activeNode.kanji.includes(k));
         for (const k of e.via) {
-          if (!subject.kanji.includes(k)) {
-            const entry = similarByKanji.get(k) ?? { subjectKanji: subjectKanji ?? "", others: [] };
+          if (!activeNode.kanji.includes(k)) {
+            const entry = similarByKanji.get(k) ?? { activeNodeKanji: activeNodeKanji ?? "", others: [] };
             entry.others.push(other);
             similarByKanji.set(k, entry);
           }
@@ -92,40 +92,40 @@ export default function DetailsPanel() {
     // High-freq connections: same lookup pattern for both edge types.
     // `c.kanji` is the character in this word (dim key); display is `c.partnerKanji ?? c.kanji`.
     const highFreq = (graph.highFreqConnections ?? []).filter((c: HighFreqConnection) =>
-      c.words.includes(subject.id),
+      c.words.includes(activeNode.id),
     );
     return { byKanji, sameReading, similarByKanji, highFreq, alternateSpellings };
-  }, [subject, graph]);
+  }, [activeNode, graph]);
 
-  if (!subject) return null;
+  if (!activeNode) return null;
 
-  const entries = getNodeEntries(subject);
-  const rawIdx = isFocusedSubject ? focusedEntryIdx : neighborEntryIdx;
+  const entries = getNodeEntries(activeNode);
+  const rawIdx = isActiveNodeFocused ? focusedEntryIdx : neighborEntryIdx;
   const clampedIdx = Math.min(rawIdx, entries.length - 1);
   const entry = entries[clampedIdx];
 
   const navEntry = (delta: number) => {
     const next = Math.min(entries.length - 1, Math.max(0, clampedIdx + delta));
-    if (isFocusedSubject) setFocusedEntryIdx(next);
+    if (isActiveNodeFocused) setFocusedEntryIdx(next);
     else setNeighborEntryIdx(next);
     const nextEntry = entries[next];
     if (audioAutoPlay && !playing && nextEntry) {
       setPlaying(true);
-      playPronunciation(subject.word, nextEntry.reading).finally(() => setPlaying(false));
+      playPronunciation(activeNode.word, nextEntry.reading).finally(() => setPlaying(false));
     }
   };
 
   return (
     <div className="absolute right-6 top-6 w-96 rounded-lg border border-ink-700 bg-ink-900 p-4 shadow-xl">
       <div className="flex items-center gap-2">
-        <div className="jp text-2xl font-semibold text-accent-paper">{subject.word}</div>
+        <div className="jp text-2xl font-semibold text-accent-paper">{activeNode.word}</div>
         <button
           type="button"
           aria-label="Play pronunciation"
           onClick={async () => {
             if (playing) return;
             setPlaying(true);
-            await playPronunciation(subject.word, entry.reading);
+            await playPronunciation(activeNode.word, entry.reading);
             setPlaying(false);
           }}
           className={`rounded p-1 transition-colors ${
@@ -164,7 +164,7 @@ export default function DetailsPanel() {
       </ul>
       <div className="mt-3 flex gap-3 text-[11px] uppercase tracking-wide text-ink-500">
         {entry.jlpt != null && <span>JLPT N{entry.jlpt}</span>}
-        {subject.frequency != null && <span>rank #{subject.frequency}</span>}
+        {activeNode.frequency != null && <span>rank #{activeNode.frequency}</span>}
       </div>
 
       {connections && (connections.byKanji.size > 0 || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
@@ -215,8 +215,8 @@ export default function DetailsPanel() {
             similar kanji
           </div>
           <div className="mt-2 space-y-2">
-            {[...connections.similarByKanji.entries()].map(([k, { subjectKanji, others }]) => {
-              const dim = (!!hoveredKanji && hoveredKanji !== subjectKanji) || hoveredReading;
+            {[...connections.similarByKanji.entries()].map(([k, { activeNodeKanji, others }]) => {
+              const dim = (!!hoveredKanji && hoveredKanji !== activeNodeKanji) || hoveredReading;
               return (
                 <div
                   key={k}
