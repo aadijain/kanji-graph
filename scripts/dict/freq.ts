@@ -1,8 +1,6 @@
 import AdmZip from "adm-zip";
 import { existsSync } from "node:fs";
-import { homedir } from "node:os";
-import { resolve } from "node:path";
-import { JPDB_FREQ_SHARED_SUBPATH } from "../constants.ts";
+import { JPDB_FREQ_SHARED_PATH } from "../constants.ts";
 
 // JPDB Yomitan frequency rows come in two shapes:
 //   kana terms:  [term, "freq", {value, displayValue}]
@@ -29,7 +27,7 @@ function extractValue(data: FreqData): { value: number; isKanaForm: boolean } | 
 function findZipPath(): string | null {
   const candidates = [
     process.env.JPDB_FREQ_PATH,
-    resolve(homedir(), JPDB_FREQ_SHARED_SUBPATH),
+    JPDB_FREQ_SHARED_PATH,
   ].filter((p): p is string => !!p);
   return candidates.find((p) => existsSync(p)) ?? null;
 }

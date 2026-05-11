@@ -1,6 +1,9 @@
 // All tunable values for the build pipeline live here. When adding a magic
 // number or string anywhere in scripts/, export it from this file instead.
 
+import { homedir } from "node:os";
+import { join } from "node:path";
+
 // ── Kanji ────────────────────────────────────────────────────────────────────
 
 export const KANJI_RE = /[一-鿿]/;
@@ -16,8 +19,16 @@ export const GRAPH_OUTPUT = "public/graph.json";
 export const JITENDEX_URL =
   "https://github.com/stephenmk/stephenmk.github.io/releases/latest/download/jitendex-yomitan.zip";
 
-// Path relative to os.homedir() — shared across tools; used when JITENDEX_PATH env var is not set.
-export const JITENDEX_SHARED_SUBPATH = ".local/share/japanese-dicts/jitendex.zip";
+// Absolute path to the shared dict directory — platform-aware; used when JITENDEX_PATH env var is not set.
+function sharedDictPath(filename: string): string {
+  if (process.platform === "win32") {
+    const base = process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local");
+    return join(base, "japanese-dicts", filename);
+  }
+  return join(homedir(), ".local", "share", "japanese-dicts", filename);
+}
+
+export const JITENDEX_SHARED_PATH = sharedDictPath("jitendex.zip");
 
 // Project-local fallback path, relative to project root.
 export const JITENDEX_LOCAL_SUBPATH = "data/dict/jitendex.zip";
@@ -27,8 +38,7 @@ export const JITENDEX_LOCAL_SUBPATH = "data/dict/jitendex.zip";
 export const JPDB_FREQ_URL =
   "https://github.com/MarvNC/jpdb-freq-list/releases/download/2022-05-09/Freq.JPDB_2022-05-10T03_27_02.930Z.zip";
 
-// Path relative to os.homedir() — shared across tools; used when JPDB_FREQ_PATH env var is not set.
-export const JPDB_FREQ_SHARED_SUBPATH = ".local/share/japanese-dicts/jpdb-freq-list.zip";
+export const JPDB_FREQ_SHARED_PATH = sharedDictPath("jpdb-freq-list.zip");
 
 // ── Dictionary parsing ───────────────────────────────────────────────────────
 

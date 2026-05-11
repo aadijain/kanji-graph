@@ -1,13 +1,10 @@
 import { createWriteStream, existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
-import { JITENDEX_URL, JITENDEX_SHARED_SUBPATH } from "./constants.ts";
+import { JITENDEX_URL, JITENDEX_SHARED_PATH } from "./constants.ts";
 
-const dest = resolve(
-  process.env.JITENDEX_PATH ?? resolve(homedir(), JITENDEX_SHARED_SUBPATH)
-);
+const dest = resolve(process.env.JITENDEX_PATH ?? JITENDEX_SHARED_PATH);
 
 const force = process.argv.includes("--force");
 

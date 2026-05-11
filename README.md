@@ -98,7 +98,7 @@ The pipeline checks three locations in order:
 
 1. `$JITENDEX_PATH` env var
 2. `data/dict/jitendex.zip` relative to the project root
-3. `~/.local/share/japanese-dicts/jitendex.zip` (default shared location)
+3. Default shared location: `~/.local/share/japanese-dicts/jitendex.zip` (Linux/macOS) or `%LOCALAPPDATA%\japanese-dicts\jitendex.zip` (Windows)
 
 `JITENDEX_PATH` accepts any Yomitan-format dictionary zip, not just Jitendex. If you've already downloaded a Yomitan dictionary (e.g. JMdict), point `JITENDEX_PATH` at that file directly.
 
@@ -112,7 +112,7 @@ npm run fetch-freq-dict -- --force                   # re-download even if alrea
 JPDB_FREQ_PATH=/path/to/jpdb-freq-list.zip npm run build-graph  # use a custom zip path
 ```
 
-The file is saved to `~/.local/share/japanese-dicts/jpdb-freq-list.zip` by default, alongside Jitendex.
+The file is saved to the same shared location as Jitendex by default (`~/.local/share/japanese-dicts/` on Linux/macOS, `%LOCALAPPDATA%\japanese-dicts\` on Windows).
 
 ## Clipboard sync
 
@@ -151,5 +151,6 @@ Key configuration files:
 ## Disclaimers
 
 - *Personal hobby project, may not be actively maintained.*
+- *Cross-platform and cross-browser, but tested primarily on Ubuntu/Firefox.*
 - *Developed with AI assistance (Claude).*
 - *MIT licensed.*
