@@ -25,6 +25,10 @@ export const AUDIO_DEFAULT_URL = "http://127.0.0.1:5050/?term={term}&reading={re
 
 // ── Colors ───────────────────────────────────────────────────────────────────
 
+// Canvas cannot read CSS variables, so these hex values must be kept in sync
+// with the ink-* and accent-* custom properties in src/index.css manually.
+// dark:  background=#0b0c0f(--ink-950)  default=#e8dccd(--accent-paper)  muted=#5a6078(--ink-500)
+// light: background=#f8f9fa(--ink-950)  default=#212529(--ink-100)        muted=#adb5bd(--ink-600)
 export const NODE_COLORS = {
   default:       "#e8dccd",
   neighbor:      "#f3e7d3",
