@@ -171,7 +171,7 @@ export default function DetailsPanel() {
         {activeNode.frequency != null && <span className="ml-auto">#{activeNode.frequency}</span>}
       </div>
 
-      {connections && (connections.byKanji.size > 0 || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
+      {connections && ([...connections.byKanji.values()].some((v) => v.length > 0) || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-xs uppercase tracking-wide text-muted">
             shared kanji
