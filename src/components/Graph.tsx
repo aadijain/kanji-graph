@@ -46,6 +46,7 @@ export default function Graph() {
   const cachedPositionsRef = useRef<Map<string, XY>>(new Map());
   const cameraSnapshotRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
   const lastFocusedIdRef = useRef<string | null>(null);
+  const [focusTweenVersion, setFocusTweenVersion] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number }>(() => ({
     w: typeof window === "undefined" ? 0 : window.innerWidth,
@@ -364,10 +365,11 @@ export default function Graph() {
     return () => {
       cancelTweenRef.current?.();
     };
-    // Narrowed dep: focused?.id only (not focused or data) so the tween does
-    // not re-fire on every node position update while the simulation runs.
+    // Narrowed dep: focused?.id + focusTweenVersion only so the tween does not
+    // re-fire on every node position update while the simulation runs.
+    // focusTweenVersion is bumped by reset-zoom to re-run the full enter path.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focused?.id]);
+  }, [focused?.id, focusTweenVersion]);
 
   // Publish a getter so FocusOverlay can anchor to the focused node's
   // live canvas position each frame. Graph.tsx owns fgRef and the live data
@@ -396,10 +398,8 @@ export default function Graph() {
       const { focused, settings } = useStore.getState();
       const transitionMs = ANIMATION_MS[settings.animationSpeed];
       if (focused) {
-        const node = (data.nodes as WordNode[]).find((n) => n.id === focused.id);
-        if (!node || node.x == null || node.y == null) return;
-        fg.centerAt(node.x, node.y, transitionMs);
-        fg.zoom(FOCUS_ZOOM_VALUES[settings.focusZoom], transitionMs);
+        // Re-trigger the full focus enter path (repositions neighbors + camera).
+        setFocusTweenVersion((v) => v + 1);
       } else {
         fg.zoomToFit(transitionMs, GRAPH_FIT_PADDING);
       }
