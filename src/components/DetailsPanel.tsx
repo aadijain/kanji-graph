@@ -166,9 +166,9 @@ export default function DetailsPanel() {
           <li key={i}>{g}</li>
         ))}
       </ul>
-      <div className="mt-3 flex gap-3 text-xs uppercase tracking-wide text-ink-500">
+      <div className="mt-3 flex text-xs uppercase tracking-wide text-ink-500">
         {entry.jlpt != null && <span>JLPT N{entry.jlpt}</span>}
-        {activeNode.frequency != null && <span>rank #{activeNode.frequency}</span>}
+        {activeNode.frequency != null && <span className="ml-auto">#{activeNode.frequency}</span>}
       </div>
 
       {connections && (connections.byKanji.size > 0 || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
