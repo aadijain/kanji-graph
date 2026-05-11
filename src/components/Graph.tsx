@@ -45,6 +45,7 @@ export default function Graph() {
   const cancelTweenRef = useRef<(() => void) | null>(null);
   const cachedPositionsRef = useRef<Map<string, XY>>(new Map());
   const cameraSnapshotRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
+  const lastFocusedIdRef = useRef<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number }>(() => ({
     w: typeof window === "undefined" ? 0 : window.innerWidth,
@@ -240,6 +241,7 @@ export default function Graph() {
     const neighborRadius = NEIGHBOR_RADIUS_VALUES[s.neighborSpread];
 
     if (focused) {
+      lastFocusedIdRef.current = focused.id;
       if (cachedPositionsRef.current.size === 0) {
         for (const n of nodes) {
           if (n.x != null && n.y != null) {
@@ -330,10 +332,11 @@ export default function Graph() {
       }
 
       setTransitioning(true);
-      const snap = cameraSnapshotRef.current;
-      if (snap) {
-        fg.centerAt(snap.x, snap.y, transitionMs);
-        fg.zoom(snap.zoom, transitionMs);
+      const lastId = lastFocusedIdRef.current;
+      const lastPos = lastId ? cached.get(lastId) : null;
+      if (lastPos) {
+        fg.centerAt(lastPos.x, lastPos.y, transitionMs);
+        fg.zoom(cameraSnapshotRef.current?.zoom ?? 1, transitionMs);
       } else {
         fg.zoomToFit(transitionMs, GRAPH_FIT_PADDING);
       }
