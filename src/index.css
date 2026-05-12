@@ -9,6 +9,10 @@ body,
   margin: 0;
 }
 
+html {
+  font-size: 133%;
+}
+
 /* ── Dark mode (default) ──────────────────────────────────────────────────── */
 /* Canvas color counterparts live in NODE_COLORS (src/lib/constants.ts) and must
    be kept in sync manually when any ink-* or accent-* value changes here. */

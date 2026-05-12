@@ -70,9 +70,9 @@ export const LAYOUT_DENSITY_VALUES: Record<
 
 // Controls the canvas label font size (basePx / globalScale in the render loop).
 export const NODE_SIZE_VALUES: Record<NodeSize, number> = {
-  small: 13,
-  medium: 18,
-  large: 24,
+  small: 24,
+  medium: 30,
+  large: 36,
 };
 
 // Each entry: the localStorage key for that schema version and a function that
