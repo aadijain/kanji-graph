@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "../store";
 import { KANJI_RE, BACK_STRIP_WIDTH } from "../lib/constants";
 import { graphRef } from "../lib/graphRef";
 import { playPronunciation, stopAudio } from "../lib/audio";
 import { getNodeEntries } from "../lib/utils";
+import { endpointId } from "../types";
 
 function BackEdge({ onClick }: { onClick: () => void }) {
   return (
@@ -31,9 +32,12 @@ export default function FocusOverlay() {
   const setHoveredKanji = useStore((s) => s.setHoveredKanji);
   const hoveredReading = useStore((s) => s.hoveredReading);
   const setHoveredReading = useStore((s) => s.setHoveredReading);
+  const hovered = useStore((s) => s.hovered);
   const transitioning = useStore((s) => s.transitioning);
   const edgeColors = useStore((s) => s.settings.edgeColors);
+  const edgeVisibility = useStore((s) => s.settings.edgeVisibility);
   const audioAutoPlay = useStore((s) => s.settings.audioAutoPlay);
+  const graph = useStore((s) => s.graph);
   const wordRef = useRef<HTMLDivElement>(null);
   // Ref instead of state: we only need a guard against double-play; no visual
   // indicator is rendered here, so triggering a re-render would be wasteful.
@@ -64,6 +68,31 @@ export default function FocusOverlay() {
     return () => cancelAnimationFrame(raf);
   }, [focused]);
 
+  // Reverse highlight: when a neighbor is hovered in word view, derive which
+  // main-word kanji and which entry readings bridge the connection.
+  const bridge = useMemo(() => {
+    if (!focused || !hovered || hovered.id === focused.id || !graph) return null;
+    const kanjiColors = new Map<string, string>();
+    const readingColors = new Map<string, string>();
+    const focusedChars = new Set([...focused.word]);
+    for (const e of graph.edges) {
+      if (!edgeVisibility[e.type]) continue;
+      const s = endpointId(e.source);
+      const t = endpointId(e.target);
+      const matches = (s === focused.id && t === hovered.id) || (t === focused.id && s === hovered.id);
+      if (!matches) continue;
+      const color = edgeColors[e.type];
+      if (e.type === "same-reading") {
+        for (const r of e.via) readingColors.set(r, color);
+      } else {
+        for (const k of e.via) {
+          if (focusedChars.has(k)) kanjiColors.set(k, color);
+        }
+      }
+    }
+    return { kanjiColors, readingColors };
+  }, [focused, hovered, graph, edgeVisibility, edgeColors]);
+
   if (!focused) return null;
 
   const chars = [...focused.word];
@@ -83,6 +112,8 @@ export default function FocusOverlay() {
             const isKanji = KANJI_RE.test(ch);
             const isActive = hoveredKanji === ch;
             const dim = !!hoveredKanji && !isActive;
+            const bridgeColor = bridge?.kanjiColors.get(ch);
+            const bridgeDim = !!bridge && !bridgeColor;
             return (
               <span
                 key={i}
@@ -93,13 +124,19 @@ export default function FocusOverlay() {
                   isKanji ? "cursor-pointer" : "",
                   isActive
                     ? "scale-110"
-                    : (dim || hoveredReading)
+                    : (dim || hoveredReading || bridgeDim)
                       ? "text-muted"
                       : isKanji
                         ? "text-primary"
                         : "text-secondary",
                 ].join(" ")}
-                style={isActive ? { color: edgeColors["shared-kanji"] } : undefined}
+                style={
+                  bridgeColor
+                    ? { color: bridgeColor }
+                    : isActive
+                      ? { color: edgeColors["shared-kanji"] }
+                      : undefined
+                }
               >
                 {ch}
               </span>
@@ -109,6 +146,10 @@ export default function FocusOverlay() {
         <div className="jp mt-3 flex flex-col items-center gap-0.5">
           {entries.map((e, i) => {
             const isActive = i === activeIdx;
+            const bridgeReadingColor = bridge?.readingColors.get(e.reading);
+            const bridgeDim = !!bridge && !bridgeReadingColor;
+            const highlightReading =
+              !hoveredKanji && !bridge && (hoveredReading ? hoveredReading === e.reading : isActive);
             return (
               <span
                 key={i}
@@ -122,11 +163,13 @@ export default function FocusOverlay() {
                 }}
                 onMouseEnter={() => setHoveredReading(e.reading)}
                 onMouseLeave={() => setHoveredReading(null)}
-                className={`cursor-pointer text-sm transition duration-150 ${isActive ? "" : "text-muted hover:text-secondary"}`}
+                className={`cursor-pointer text-sm transition duration-150 ${isActive && !bridgeDim ? "" : "text-muted hover:text-secondary"}`}
                 style={
-                  !hoveredKanji && (hoveredReading ? hoveredReading === e.reading : isActive)
-                    ? { color: edgeColors["same-reading"] }
-                    : undefined
+                  bridgeReadingColor
+                    ? { color: bridgeReadingColor }
+                    : highlightReading
+                      ? { color: edgeColors["same-reading"] }
+                      : undefined
                 }
               >
                 {e.reading}

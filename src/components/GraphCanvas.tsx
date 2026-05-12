@@ -117,12 +117,13 @@ export default function GraphCanvas({
           const via = nd?.via ?? [];
           const dimByKanji = !!hoveredKanji && !via.includes(hoveredKanji);
           const dimByReading = !!hoveredReading && !nd?.sameReadingVia.includes(hoveredReading);
+          const dimByNeighborHover = !!hoveredId && hoveredId !== focused.id && n.id !== hoveredId;
           const dotColor = hoveredKanji
             ? settings.edgeColors[nd?.kanjiType.get(hoveredKanji) ?? nd?.primaryType ?? "shared-kanji"]
             : hoveredReading
               ? settings.edgeColors["same-reading"]
               : settings.edgeColors[nd?.primaryType ?? "shared-kanji"];
-          ctx.fillStyle = (dimByKanji || dimByReading) ? COLORS.muted : dotColor;
+          ctx.fillStyle = (dimByKanji || dimByReading || dimByNeighborHover) ? COLORS.muted : dotColor;
         } else if (isHovered) {
           ctx.fillStyle = COLORS.bridgeKanjiHi;
         } else if (isHoverNeighbor) {
@@ -172,11 +173,15 @@ export default function GraphCanvas({
             const matchesReading = !!nd?.sameReadingVia.includes(hoveredReading);
             baseColor = matchesReading ? COLORS.highlight : COLORS.muted;
             if (matchesReading) weight = 600;
+          } else if (hoveredId && hoveredId !== focused.id && n.id !== hoveredId) {
+            baseColor = COLORS.muted;
           } else {
             // Highlight each bridging kanji in its own edge-type color.
             // For similar-kanji bridges, color the partner kanji that appears in
             // the neighbor's word (not the focused word's kanji).
-            baseColor = COLORS.neighbor;
+            const isHoveredNeighbor = hoveredId === n.id;
+            baseColor = isHoveredNeighbor ? COLORS.highlight : COLORS.neighbor;
+            if (isHoveredNeighbor) weight = 600;
             highlights = new Map();
             for (const k of via) {
               const t = nd?.kanjiType.get(k) ?? nd?.primaryType ?? "shared-kanji";
@@ -228,6 +233,9 @@ export default function GraphCanvas({
           if (hoveredReading) {
             if (l.type !== "same-reading" || !l.via.includes(hoveredReading)) return hexToRgba(hex, 0.18);
           }
+          if (hoveredId && hoveredId !== focused.id) {
+            if (s !== hoveredId && t !== hoveredId) return hexToRgba(hex, 0.18);
+          }
           return hexToRgba(hex, 0.85);
         }
         if (!hoveredId) return hexToRgba(hex, 0.05);
@@ -242,6 +250,7 @@ export default function GraphCanvas({
           if (s !== focused.id && t !== focused.id) return 0;
           if (hoveredKanji && (l.type === "same-reading" || !l.via.includes(hoveredKanji))) return 0.5;
           if (hoveredReading && (l.type !== "same-reading" || !l.via.includes(hoveredReading))) return 0.5;
+          if (hoveredId && hoveredId !== focused.id && s !== hoveredId && t !== hoveredId) return 0.5;
           return 1.6;
         }
         if (!hoveredId) return 0.4;
