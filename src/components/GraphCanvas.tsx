@@ -18,6 +18,20 @@ import {
 import { NODE_SIZE_VALUES } from "../lib/settings";
 import { freqDotR, drawLabel, saveLayout } from "../lib/graphLayout";
 
+// Word-view hover/filter/highlight behavior. The four hover states are
+// mutually exclusive: setHoveredKanji and setHoveredReading clear each other,
+// and `hovered` (a WordNode) is only meaningful when it's not the focused node.
+//
+// | Hover state         | Edges                          | Neighbors           | Main word                                  | Details panel       |
+// |---------------------|--------------------------------|---------------------|--------------------------------------------|---------------------|
+// | none                | all shown                      | bridge kanji colored per edge type | selected entry's reading highlighted     | selected entry      |
+// | main-word kanji     | bridged edges bold, others dim | matching bold, others muted        | hovered kanji enlarged + colored          | selected entry      |
+// | main-word reading   | bridged edges bold, others dim | matching bold, others muted        | hovered reading colored (same-reading)    | hovered reading's entry |
+// | neighbor (in focus) | edges to that neighbor bold    | hovered bold, others muted         | bridging kanji/readings colored per type  | selected entry      |
+//
+// Filter mode is "dim" not "hide": non-matching edges drop to 0.18 alpha, non-matching neighbors render in COLORS.muted.
+// Multi-edge pairs (e.g. one shared-kanji + one same-reading edge to the same neighbor) highlight all bridges simultaneously.
+// Similar-kanji bridges color the partner kanji in the neighbor's label (not the focused word's kanji).
 interface Props {
   fgRef: React.MutableRefObject<ForceGraphMethods | undefined>;
   data: { nodes: WordNode[]; links: Edge[] };
