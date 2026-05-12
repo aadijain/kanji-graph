@@ -116,6 +116,8 @@ export const GRAPH_FIT_PADDING = 80;
 export const EDGE_CURVATURE_STEP = 0.12;
 // Dot radius override for focused and hovered nodes (overrides frequency-based sizing).
 export const FOCUS_NODE_RADIUS = 5;
+// Fixed camera zoom level when entering word view.
+export const FOCUS_ZOOM = 5;
 export const FOCUS_HISTORY_MAX = 10;
 // Separator color for focus-history items with no direct edge between them.
 export const FOCUS_HISTORY_NO_EDGE_COLOR = "#4a4a5a";

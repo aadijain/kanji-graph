@@ -3,7 +3,6 @@ import { useStore } from "../store";
 import {
   DEFAULT_SETTINGS,
   type AnimationSpeed,
-  type FocusZoom,
   type LayoutDensity,
   type NeighborSpread,
   type NodeSize,
@@ -22,16 +21,10 @@ const SPEED_OPTIONS = [
   { label: "Slow",    value: "slow"    as AnimationSpeed },
 ] as const;
 
-const ZOOM_OPTIONS = [
-  { label: "Close",  value: "close"  as FocusZoom },
-  { label: "Normal", value: "normal" as FocusZoom },
-  { label: "Far",    value: "far"    as FocusZoom },
-] as const;
-
 const SPREAD_OPTIONS = [
-  { label: "Tight",  value: "tight"  as NeighborSpread },
+  { label: "Close",  value: "tight"  as NeighborSpread },
   { label: "Normal", value: "normal" as NeighborSpread },
-  { label: "Wide",   value: "wide"   as NeighborSpread },
+  { label: "Far",   value: "wide"   as NeighborSpread },
 ] as const;
 
 const DENSITY_OPTIONS = [
@@ -202,9 +195,6 @@ export default function SettingsPanel({ onClose }: Props) {
           <Section title="Focus">
             <Row label="Animation">
               <Steps options={SPEED_OPTIONS} value={settings.animationSpeed} onChange={(v) => updateSettings({ animationSpeed: v })} />
-            </Row>
-            <Row label="Zoom">
-              <Steps options={ZOOM_OPTIONS} value={settings.focusZoom} onChange={(v) => updateSettings({ focusZoom: v })} />
             </Row>
             <Row label="Neighbor spread">
               <Steps options={SPREAD_OPTIONS} value={settings.neighborSpread} onChange={(v) => updateSettings({ neighborSpread: v })} />

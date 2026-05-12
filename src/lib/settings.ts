@@ -5,7 +5,6 @@ import type { EdgeType } from "../types";
 import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY, SETTINGS_LEGACY_KEY_V2, EDGE_TYPE_META } from "./constants";
 
 export type AnimationSpeed = "instant" | "fast" | "normal" | "slow";
-export type FocusZoom = "close" | "normal" | "far";
 export type NeighborSpread = "tight" | "normal" | "wide";
 export type LayoutDensity = "dense" | "normal" | "open" | "sparse";
 export type NodeSize = "small" | "medium" | "large";
@@ -18,7 +17,6 @@ export interface Settings {
   edgeVisibility: Record<EdgeType, boolean>;
   edgeColors: Record<EdgeType, string>;
   animationSpeed: AnimationSpeed;
-  focusZoom: FocusZoom;
   neighborSpread: NeighborSpread;
   layoutDensity: LayoutDensity;
   nodeSize: NodeSize;
@@ -36,7 +34,6 @@ export const DEFAULT_SETTINGS: Settings = {
   edgeVisibility: Object.fromEntries(Object.keys(EDGE_TYPE_META).map((k) => [k, true])) as Record<EdgeType, boolean>,
   edgeColors: Object.fromEntries(Object.entries(EDGE_TYPE_META).map(([k, v]) => [k, v.hex])) as Record<EdgeType, string>,
   animationSpeed: "normal",
-  focusZoom: "normal",
   neighborSpread: "normal",
   layoutDensity: "normal",
   nodeSize: "medium",
@@ -53,12 +50,6 @@ export const ANIMATION_MS: Record<AnimationSpeed, number> = {
   fast: 300,
   normal: 700,
   slow: 1100,
-};
-
-export const FOCUS_ZOOM_VALUES: Record<FocusZoom, number> = {
-  close: 2.5,
-  normal: 3.5,
-  far: 5.0,
 };
 
 export const NEIGHBOR_RADIUS_VALUES: Record<NeighborSpread, number> = {
@@ -92,7 +83,8 @@ const MIGRATIONS: { key: string; migrate(raw: string): Settings }[] = [
   {
     key: SETTINGS_STORAGE_KEY,
     migrate(raw) {
-      const p = JSON.parse(raw) as Partial<Settings>;
+      // `focusZoom` was removed in-place (no schema bump); strip it from stored data so it doesn't perpetuate.
+      const { focusZoom: _, ...p } = JSON.parse(raw) as Partial<Settings> & { focusZoom?: unknown };
       return {
         ...DEFAULT_SETTINGS,
         ...p,

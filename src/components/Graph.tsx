@@ -6,7 +6,6 @@ import { tween } from "../lib/animation";
 import { focusLayout, type NeighborSpec, type XY } from "../lib/layout";
 import {
   ANIMATION_MS,
-  FOCUS_ZOOM_VALUES,
   NEIGHBOR_RADIUS_VALUES,
   LAYOUT_DENSITY_VALUES,
 } from "../lib/settings";
@@ -17,6 +16,7 @@ import {
   RESIZE_FIT_MS,
   GRAPH_FIT_PADDING,
   EDGE_CURVATURE_STEP,
+  FOCUS_ZOOM,
 } from "../lib/constants";
 import { graphRef } from "../lib/graphRef";
 import { loadLayout, type D3LinkForce, type D3ChargeForce } from "../lib/graphLayout";
@@ -240,7 +240,6 @@ export default function Graph() {
     // re-tween when a setting changes while already in focus).
     const s = useStore.getState().settings;
     const transitionMs = ANIMATION_MS[s.animationSpeed];
-    const focusZoom = FOCUS_ZOOM_VALUES[s.focusZoom];
     const neighborRadius = NEIGHBOR_RADIUS_VALUES[s.neighborSpread];
 
     if (focused) {
@@ -292,7 +291,7 @@ export default function Graph() {
       }
 
       fg.centerAt(focusNode.x ?? 0, focusNode.y ?? 0, transitionMs);
-      fg.zoom(focusZoom, transitionMs);
+      fg.zoom(FOCUS_ZOOM, transitionMs);
       setTransitioning(true);
 
       cancelTweenRef.current = tween({
