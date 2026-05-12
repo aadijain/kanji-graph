@@ -25,6 +25,8 @@ Interactive web tool for visualizing connections between Japanese words you've l
 
 <p align="center"><a href="docs/">More screenshots</a></p>
 
+<p align="center"><strong><a href="https://aadijain.github.io/kanji-graph/">Live demo</a></strong></p>
+
 ---
 
 ## Features

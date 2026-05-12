@@ -39,7 +39,7 @@ export default function App() {
     if (initialWord) useStore.getState().setPendingFocusWord(initialWord);
 
     const ac = new AbortController();
-    fetch("/graph.json", { signal: ac.signal })
+    fetch(`${import.meta.env.BASE_URL}graph.json`, { signal: ac.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`graph.json: ${r.status}`);
         return r.json();
