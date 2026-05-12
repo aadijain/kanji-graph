@@ -6,6 +6,7 @@ import { type Settings } from "../lib/settings";
 import {
   NODE_COLORS,
   EDGE_TYPE_META,
+  ACCENT_COLORS,
   hexToRgba,
   COOLDOWN_TICKS,
   D3_ALPHA_DECAY,
@@ -238,7 +239,7 @@ export default function GraphCanvas({
         if (!settings.edgeVisibility[l.type]) return COLORS.edgeHidden;
         const s = endpointId(l.source);
         const t = endpointId(l.target);
-        const hex = settings.edgeColors[l.type] ?? EDGE_TYPE_META[l.type].hex;
+        const hex = settings.edgeColors[l.type] ?? ACCENT_COLORS[EDGE_TYPE_META[l.type].color];
         if (focused) {
           if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
           if (hoveredKanji) {

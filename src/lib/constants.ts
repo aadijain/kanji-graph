@@ -57,14 +57,27 @@ export const LIGHT_NODE_COLORS = {
   background:    "#f8f9fa",
 };
 
-// Per edge-type metadata. `hex` is the default color; `desc` is the user-facing description.
+// Canvas-side mirror of the --accent-* CSS variables in index.css (dark-mode values).
+// Canvas can't read CSS vars, so this map must be kept in sync manually.
+export const ACCENT_COLORS = {
+  paper: "#e8dccd",
+  gold:  "#d4a857",
+  rose:  "#d97a82",
+  sky:   "#7aa8d9",
+  moss:  "#8fb37a",
+  plum:  "#a880d4",
+} as const;
+
+export type AccentName = keyof typeof ACCENT_COLORS;
+
+// Per edge-type metadata. `color` is the default accent name (resolve to hex via ACCENT_COLORS).
 // Canvas active/muted/ambient variants are computed from the user's chosen color via hexToRgba.
 // This is the single source of truth for all edge-type lists -- derive from it, don't duplicate.
-export const EDGE_TYPE_META: Record<EdgeType, { label: string; hex: string; desc: string }> = {
-  "shared-kanji":      { label: "shared kanji",      hex: "#d4a857", desc: "words share one or more kanji characters" },
-  "similar-kanji":     { label: "similar kanji",     hex: "#a880d4", desc: "words contain visually similar or commonly confused kanji" },
-  "same-reading":      { label: "same reading",      hex: "#7aa8d9", desc: "words share a kana reading" },
-  "alternate-spelling": { label: "alternate spelling", hex: "#d97a82", desc: "same word written with different kanji or kana" },
+export const EDGE_TYPE_META: Record<EdgeType, { label: string; color: AccentName; desc: string }> = {
+  "shared-kanji":      { label: "shared kanji",      color: "gold", desc: "words share one or more kanji characters" },
+  "similar-kanji":     { label: "similar kanji",     color: "rose", desc: "words contain visually similar or commonly confused kanji" },
+  "same-reading":      { label: "same reading",      color: "sky",  desc: "words share a kana reading" },
+  "alternate-spelling": { label: "alternate spelling", color: "plum", desc: "same word written with different kanji or kana" },
 };
 
 // Typed array of all [EdgeType, meta] pairs. Use instead of Object.entries(EDGE_TYPE_META).
@@ -74,14 +87,11 @@ export const EDGE_ENTRIES = Object.entries(EDGE_TYPE_META) as [EdgeType, typeof 
 // alternate-spelling is excluded: it's a different relationship, not ranked against the others.
 export const EDGE_TYPE_PRIORITY: EdgeType[] = ["shared-kanji", "similar-kanji", "same-reading"];
 
-// Curated swatch palette for edge color selection (matches accent.* in tailwind.config.js).
-export const EDGE_COLOR_SWATCHES = [
-  { label: "gold",  hex: "#d4a857" },
-  { label: "rose",  hex: "#d97a82" },
-  { label: "sky",   hex: "#7aa8d9" },
-  { label: "moss",  hex: "#8fb37a" },
-  { label: "plum",  hex: "#a880d4" },
-] as const;
+// Curated swatch palette for edge color selection. Excludes 'paper' (reserved for default node color).
+const EDGE_SWATCH_NAMES = ["gold", "rose", "sky", "moss", "plum"] as const satisfies readonly AccentName[];
+export const EDGE_COLOR_SWATCHES = EDGE_SWATCH_NAMES.map(
+  (label) => ({ label, hex: ACCENT_COLORS[label] }),
+);
 
 // Converts a 6-digit hex color to an rgba() string.
 const _rgbaCache = new Map<string, string>();

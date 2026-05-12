@@ -2,7 +2,7 @@
 // Settings schema. Internal/non-user-facing constants belong in constants.ts.
 
 import type { EdgeType } from "../types";
-import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY, SETTINGS_LEGACY_KEY_V2, EDGE_TYPE_META } from "./constants";
+import { SETTINGS_STORAGE_KEY, SETTINGS_LEGACY_KEY, SETTINGS_LEGACY_KEY_V2, EDGE_TYPE_META, ACCENT_COLORS } from "./constants";
 
 export type AnimationSpeed = "instant" | "fast" | "normal" | "slow";
 export type NeighborSpread = "tight" | "normal" | "wide";
@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   localAudioEnabled: false,
   audioServerUrl: "",
   edgeVisibility: Object.fromEntries(Object.keys(EDGE_TYPE_META).map((k) => [k, true])) as Record<EdgeType, boolean>,
-  edgeColors: Object.fromEntries(Object.entries(EDGE_TYPE_META).map(([k, v]) => [k, v.hex])) as Record<EdgeType, string>,
+  edgeColors: Object.fromEntries(Object.entries(EDGE_TYPE_META).map(([k, v]) => [k, ACCENT_COLORS[v.color]])) as Record<EdgeType, string>,
   animationSpeed: "normal",
   neighborSpread: "normal",
   layoutDensity: "normal",

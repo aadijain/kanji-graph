@@ -24,6 +24,10 @@ body,
   --ink-100: 232 234 242;
   --accent-paper: 232 220 205;
   --accent-gold: 212 168 87;
+  --accent-rose: 217 122 130;
+  --accent-sky: 122 168 217;
+  --accent-moss: 143 179 122;
+  --accent-plum: 168 128 212;
 }
 
 /* ── Light mode ───────────────────────────────────────────────────────────── */
@@ -39,6 +43,10 @@ body,
   --ink-100: 33 37 41;
   --accent-paper: 148 98 18;
   --accent-gold: 148 98 18;
+  --accent-rose: 166 70 79;
+  --accent-sky: 60 110 167;
+  --accent-moss: 90 128 80;
+  --accent-plum: 110 75 160;
 }
 
 body {
