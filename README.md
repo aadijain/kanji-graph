@@ -151,6 +151,7 @@ Key configuration files:
 ## Disclaimers
 
 - *Personal hobby project, may not be actively maintained.*
+- *Desktop only - designed for mouse and keyboard; mobile and touch devices are not supported.*
 - *Cross-platform and cross-browser, but tested primarily on Ubuntu/Firefox.*
 - *Developed with AI assistance (Claude).*
 - *MIT licensed.*
