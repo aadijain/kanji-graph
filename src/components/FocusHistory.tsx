@@ -38,7 +38,7 @@ export default function FocusHistory() {
         return (
           <span key={`${entry.id}-${i}`} className="flex items-center gap-1">
             {i > 0 && (
-              <span className="px-0.5 text-2xs" style={{ color: separatorColors[i - 1] }}>
+              <span className="px-0.5 text-xs" style={{ color: separatorColors[i - 1] }}>
                 ›
               </span>
             )}

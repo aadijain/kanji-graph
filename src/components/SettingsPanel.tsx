@@ -115,7 +115,7 @@ function Section({
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center gap-2 text-2xs text-ink-500 transition-colors hover:text-ink-300"
+        className="flex w-full items-center gap-2 text-xs text-ink-500 transition-colors hover:text-ink-300"
       >
         <svg
           viewBox="0 0 12 12"

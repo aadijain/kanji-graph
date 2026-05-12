@@ -56,7 +56,7 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Graph view */}
         <div className="mt-5">
-          <div className="text-2xs uppercase tracking-wide text-ink-500">Graph view</div>
+          <div className="text-xs uppercase tracking-wide text-ink-500">Graph view</div>
           <InteractionTable rows={GLOBAL_VIEW} />
         </div>
 
@@ -64,7 +64,7 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Word view */}
         <div className="mt-4">
-          <div className="text-2xs uppercase tracking-wide text-ink-500">Word view</div>
+          <div className="text-xs uppercase tracking-wide text-ink-500">Word view</div>
           <InteractionTable rows={FOCUS_MODE} />
         </div>
 
@@ -72,7 +72,7 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Clipboard sync */}
         <div className="mt-4">
-          <div className="text-2xs uppercase tracking-wide text-ink-500">Clipboard sync</div>
+          <div className="text-xs uppercase tracking-wide text-ink-500">Clipboard sync</div>
           <p className="mt-1.5 text-sm leading-relaxed text-ink-500">
             Enable <span className="text-ink-300">Settings → Clipboard → Follow clipboard</span> to
             focus a word by copying it. Press <span className="text-ink-300">Ctrl+V</span> on the graph to
@@ -84,7 +84,7 @@ export default function InfoModal({ onClose }: Props) {
 
         {/* Edge types */}
         <div className="mt-4">
-          <div className="text-2xs uppercase tracking-wide text-ink-500">Edge types</div>
+          <div className="text-xs uppercase tracking-wide text-ink-500">Edge types</div>
           <div className="mt-1.5 space-y-2">
             {EDGE_ENTRIES.map(([type, { label, desc }]) => (
               <div key={type} className="flex items-start gap-3">
@@ -94,7 +94,7 @@ export default function InfoModal({ onClose }: Props) {
                 />
                 <div>
                   <div className="text-sm text-ink-100">{label}</div>
-                  <div className="text-2xs text-ink-500">{desc}</div>
+                  <div className="text-xs text-ink-500">{desc}</div>
                 </div>
               </div>
             ))}
