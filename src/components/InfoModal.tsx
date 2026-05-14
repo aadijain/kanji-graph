@@ -1,6 +1,7 @@
 import { useStore } from "../store";
 import { hexToRgba, EDGE_ENTRIES } from "../lib/constants";
 import CloseButton from "./CloseButton";
+import EdgeStyleSwatch from "./EdgeStyleSwatch";
 
 interface Props {
   onClose: () => void;
@@ -89,9 +90,10 @@ export default function InfoModal({ onClose }: Props) {
           <div className="mt-1.5 space-y-2">
             {EDGE_ENTRIES.map(([type, { label, desc }]) => (
               <div key={type} className="flex items-start gap-3">
-                <span
-                  className="mt-[5px] inline-block h-px w-5 shrink-0"
-                  style={{ background: hexToRgba(edgeColors[type], 0.9) }}
+                <EdgeStyleSwatch
+                  type={type}
+                  color={hexToRgba(edgeColors[type], 0.9)}
+                  className="mt-[3px] shrink-0"
                 />
                 <div>
                   <div className="text-sm text-primary">{label}</div>

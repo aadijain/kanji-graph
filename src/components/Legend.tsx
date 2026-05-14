@@ -1,6 +1,7 @@
 import { useStore } from "../store";
 import { EDGE_ENTRIES, BACK_STRIP_PANEL_LEFT } from "../lib/constants";
 import type { EdgeType } from "../types";
+import EdgeStyleSwatch from "./EdgeStyleSwatch";
 
 export default function Legend() {
   const edgeColors = useStore((s) => s.settings.edgeColors);
@@ -30,10 +31,7 @@ export default function Legend() {
               onClick={() => toggleEdge(type)}
               className={`flex w-full items-center gap-2 transition-opacity hover:opacity-100 ${visible ? "opacity-100" : "opacity-40"}`}
             >
-              <span
-                className="inline-block h-px w-6 flex-shrink-0"
-                style={{ background: edgeColors[type] }}
-              />
+              <EdgeStyleSwatch type={type} color={edgeColors[type]} className="flex-shrink-0" />
               <span>{label}</span>
             </button>
           );
