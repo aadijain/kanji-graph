@@ -87,6 +87,39 @@ export const EDGE_ENTRIES = Object.entries(EDGE_TYPE_META) as [EdgeType, typeof 
 // alternate-spelling is excluded: it's a different relationship, not ranked against the others.
 export const EDGE_TYPE_PRIORITY: EdgeType[] = ["shared-kanji", "similar-kanji", "same-reading"];
 
+// ── Edge line styles ─────────────────────────────────────────────────────────
+
+// The stroke shape used to draw each edge type, in addition to its color. Helps
+// at-a-glance legibility when types overlap and accessibility for color-blind users.
+// To re-skin: edit EDGE_STYLE; to tune a style's look: edit EDGE_STYLE_PARAMS.
+// Adding another style = a case in drawStyledEdge() and EdgeStyleSwatch, plus an
+// EDGE_STYLE_PARAMS entry if it needs tuning. "dash-dot" and "square" are defined
+// and renderable but not assigned to any edge type yet -- spare options for EDGE_STYLE.
+export type EdgeStyle =
+  | "solid" | "dashed" | "dotted" | "dash-dot"
+  | "zigzag" | "square" | "wavy" | "double";
+
+export const EDGE_STYLE: Record<EdgeType, EdgeStyle> = {
+  "shared-kanji":       "solid",
+  "similar-kanji":      "zigzag",
+  "same-reading":       "wavy",
+  "alternate-spelling": "double",
+};
+
+// Per-style tuning. All lengths are in screen pixels -- like the library's own
+// linkWidth they are divided by globalScale at draw time so the look is
+// zoom-stable. dash = setLineDash pattern; amplitude/wavelength shape zigzag &
+// wavy; gap = separation between the two strokes of a double line.
+export const EDGE_STYLE_PARAMS = {
+  dashed:     { dash: [5, 4] as number[] },
+  dotted:     { dash: [0.5, 3] as number[] },
+  "dash-dot": { dash: [6, 3, 0.5, 3] as number[] },
+  zigzag:     { amplitude: 2.8, wavelength: 7 },
+  square:     { amplitude: 2.6, wavelength: 8 },
+  wavy:       { amplitude: 2.1, wavelength: 24 },
+  double:     { gap: 3.6 },
+} as const;
+
 // Curated swatch palette for edge color selection. Excludes 'paper' (reserved for default node color).
 const EDGE_SWATCH_NAMES = ["gold", "rose", "sky", "moss", "plum"] as const satisfies readonly AccentName[];
 export const EDGE_COLOR_SWATCHES = EDGE_SWATCH_NAMES.map(

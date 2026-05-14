@@ -6,6 +6,7 @@ import { type Settings } from "../lib/settings";
 import {
   NODE_COLORS,
   EDGE_TYPE_META,
+  EDGE_STYLE,
   ACCENT_COLORS,
   hexToRgba,
   COOLDOWN_TICKS,
@@ -18,6 +19,7 @@ import {
 } from "../lib/constants";
 import { NODE_SIZE_VALUES } from "../lib/settings";
 import { freqDotR, drawLabel, saveLayout } from "../lib/graphLayout";
+import { drawStyledEdge, controlPointOf } from "../lib/edgeStyles";
 
 // Word-view hover/filter/highlight behavior. The four hover states are
 // mutually exclusive: setHoveredKanji and setHoveredReading clear each other,
@@ -59,6 +61,46 @@ export default function GraphCanvas({
 }: Props) {
   const hoveredRef = useRef<WordNode | null>(null);
   const hoverNeighborsRef = useRef<Set<string>>(new Set());
+
+  // Edge color/width: the focus + hover-state logic shared by the pointer-area
+  // hit test (linkWidth prop) and the custom styled rendering (linkCanvasObject).
+  // Returns COLORS.edgeHidden / width 0 for edges that should not be drawn.
+  const edgeColor = (l: Edge): string => {
+    if (!settings.edgeVisibility[l.type]) return COLORS.edgeHidden;
+    const s = endpointId(l.source);
+    const t = endpointId(l.target);
+    const hex = settings.edgeColors[l.type] ?? ACCENT_COLORS[EDGE_TYPE_META[l.type].color];
+    if (focused) {
+      if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
+      if (hoveredKanji) {
+        if (l.type === "same-reading" || !l.via.includes(hoveredKanji)) return hexToRgba(hex, 0.18);
+      }
+      if (hoveredReading) {
+        if (l.type !== "same-reading" || !l.via.includes(hoveredReading)) return hexToRgba(hex, 0.18);
+      }
+      if (hoveredId && hoveredId !== focused.id) {
+        if (s !== hoveredId && t !== hoveredId) return hexToRgba(hex, 0.18);
+      }
+      return hexToRgba(hex, 0.85);
+    }
+    if (!hoveredId) return hexToRgba(hex, 0.05);
+    return s === hoveredId || t === hoveredId ? hexToRgba(hex, 0.85) : COLORS.edgeHidden;
+  };
+
+  const edgeWidth = (l: Edge): number => {
+    if (!settings.edgeVisibility[l.type]) return 0;
+    const s = endpointId(l.source);
+    const t = endpointId(l.target);
+    if (focused) {
+      if (s !== focused.id && t !== focused.id) return 0;
+      if (hoveredKanji && (l.type === "same-reading" || !l.via.includes(hoveredKanji))) return 0.5;
+      if (hoveredReading && (l.type !== "same-reading" || !l.via.includes(hoveredReading))) return 0.5;
+      if (hoveredId && hoveredId !== focused.id && s !== hoveredId && t !== hoveredId) return 0.5;
+      return 1.6;
+    }
+    if (!hoveredId) return 0.4;
+    return s === hoveredId || t === hoveredId ? 1.4 : 0;
+  };
 
   return (
     <ForceGraph2D
@@ -234,44 +276,32 @@ export default function GraphCanvas({
         ctx.fill();
       }}
       // ----- edges -----
-      linkColor={(link) => {
-        const l = link as Edge;
-        if (!settings.edgeVisibility[l.type]) return COLORS.edgeHidden;
-        const s = endpointId(l.source);
-        const t = endpointId(l.target);
-        const hex = settings.edgeColors[l.type] ?? ACCENT_COLORS[EDGE_TYPE_META[l.type].color];
-        if (focused) {
-          if (s !== focused.id && t !== focused.id) return COLORS.edgeHidden;
-          if (hoveredKanji) {
-            if (l.type === "same-reading" || !l.via.includes(hoveredKanji)) return hexToRgba(hex, 0.18);
-          }
-          if (hoveredReading) {
-            if (l.type !== "same-reading" || !l.via.includes(hoveredReading)) return hexToRgba(hex, 0.18);
-          }
-          if (hoveredId && hoveredId !== focused.id) {
-            if (s !== hoveredId && t !== hoveredId) return hexToRgba(hex, 0.18);
-          }
-          return hexToRgba(hex, 0.85);
-        }
-        if (!hoveredId) return hexToRgba(hex, 0.05);
-        return s === hoveredId || t === hoveredId ? hexToRgba(hex, 0.85) : COLORS.edgeHidden;
-      }}
-      linkWidth={(link) => {
-        const l = link as Edge;
-        if (!settings.edgeVisibility[l.type]) return 0;
-        const s = endpointId(l.source);
-        const t = endpointId(l.target);
-        if (focused) {
-          if (s !== focused.id && t !== focused.id) return 0;
-          if (hoveredKanji && (l.type === "same-reading" || !l.via.includes(hoveredKanji))) return 0.5;
-          if (hoveredReading && (l.type !== "same-reading" || !l.via.includes(hoveredReading))) return 0.5;
-          if (hoveredId && hoveredId !== focused.id && s !== hoveredId && t !== hoveredId) return 0.5;
-          return 1.6;
-        }
-        if (!hoveredId) return 0.4;
-        return s === hoveredId || t === hoveredId ? 1.4 : 0;
-      }}
+      // Visible edges are drawn by linkCanvasObject (per-type line styles).
+      // linkWidth + linkCurvature are kept only to feed the library's
+      // pointer-area hit test, which still backs onLinkClick.
+      linkWidth={(link) => edgeWidth(link as Edge)}
       linkCurvature={(link) => edgeCurvature.get(link as Edge) ?? 0}
+      linkCanvasObjectMode={() => "replace"}
+      linkCanvasObject={(link, ctx, globalScale) => {
+        const l = link as Edge;
+        const width = edgeWidth(l);
+        if (width <= 0) return;
+        const color = edgeColor(l);
+        if (color === COLORS.edgeHidden) return;
+        const src = l.source as WordNode;
+        const tgt = l.target as WordNode;
+        if (src.x == null || src.y == null || tgt.x == null || tgt.y == null) return;
+        drawStyledEdge(
+          ctx,
+          EDGE_STYLE[l.type],
+          color,
+          width,
+          globalScale,
+          { x: src.x, y: src.y },
+          { x: tgt.x, y: tgt.y },
+          controlPointOf(l),
+        );
+      }}
       onLinkClick={(link) => {
         if (!focused) return;
         const l = link as Edge;
