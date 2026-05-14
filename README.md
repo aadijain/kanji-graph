@@ -35,7 +35,7 @@ Interactive web tool for visualizing connections between Japanese words you've l
 - **Word view** -- click a word to zoom in, reposition neighbors radially, and see per-kanji detail
 - **Multi-entry words** -- words with multiple dictionary senses show a prev/next navigator in the details panel
 - **Search** -- type anywhere to search by kanji, kana reading, or romaji; arrow keys + Enter to jump
-- **Four edge types** -- shared kanji, same reading, visually similar kanji, alternate spellings
+- **Four edge types** -- shared kanji, same reading, visually similar kanji, alternate spellings; each drawn in a distinct line style (solid / zigzag / wavy / double) as well as color
 - **Pronunciation audio** -- local [Yomitan audio server](https://github.com/yomidevs/local-audio-yomichan) or browser TTS
 - **Clipboard sync** -- copy a word anywhere and the graph focuses it automatically (opt-in)
 - **Persistent layout** -- node positions saved to localStorage so that the graph persists between reloads
