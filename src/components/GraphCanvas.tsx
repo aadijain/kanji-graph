@@ -83,7 +83,9 @@ export default function GraphCanvas({
       }
       return hexToRgba(hex, 0.85);
     }
-    if (!hoveredId) return hexToRgba(hex, 0.05);
+    // Graph view, nothing hovered: edges fully hidden (not a faint ambient web).
+    // Lets linkVisibility drop every edge before control-point calc + paint.
+    if (!hoveredId) return COLORS.edgeHidden;
     return s === hoveredId || t === hoveredId ? hexToRgba(hex, 0.85) : COLORS.edgeHidden;
   };
 
@@ -98,7 +100,7 @@ export default function GraphCanvas({
       if (hoveredId && hoveredId !== focused.id && s !== hoveredId && t !== hoveredId) return 0.5;
       return 1.6;
     }
-    if (!hoveredId) return 0.4;
+    if (!hoveredId) return 0;
     return s === hoveredId || t === hoveredId ? 1.4 : 0;
   };
 
@@ -277,8 +279,12 @@ export default function GraphCanvas({
       }}
       // ----- edges -----
       // Visible edges are drawn by linkCanvasObject (per-type line styles).
+      // linkVisibility filters hidden edges *before* the library computes
+      // curvature control points or calls linkCanvasObject, so an idle graph
+      // view (nothing hovered) and focus mode skip ~every edge entirely.
       // linkWidth + linkCurvature are kept only to feed the library's
       // pointer-area hit test, which still backs onLinkClick.
+      linkVisibility={(link) => edgeWidth(link as Edge) > 0}
       linkWidth={(link) => edgeWidth(link as Edge)}
       linkCurvature={(link) => edgeCurvature.get(link as Edge) ?? 0}
       linkCanvasObjectMode={() => "replace"}
