@@ -57,6 +57,7 @@ npm run dev             # start dev server
 | `npm run build-graph` | Read `data/words.txt`, look up each word, write `public/graph.json` |
 | `npm run fetch-jitendex` | Download the latest Jitendex Yomitan zip |
 | `npm run fetch-freq-dict` | Download the JPDB frequency dictionary zip |
+| `npm run fetch-jmdict-furigana` | Download the JmdictFurigana per-kanji reading zip |
 | `npm run build` | Type-check + production build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 
@@ -113,6 +114,18 @@ npm run fetch-freq-dict                              # download to default share
 npm run fetch-freq-dict -- --force                   # re-download even if already present
 JPDB_FREQ_PATH=/path/to/jpdb-freq-list.zip npm run build-graph  # use a custom zip path
 ```
+
+## Furigana data
+
+`fetch-jmdict-furigana` downloads [JmdictFurigana](https://github.com/Doublevil/JmdictFurigana), a precomputed per-character furigana segmentation for JMdict. The build pipeline uses it to tell whether a shared kanji is read the same way in both words, so those edges can be styled differently (solid when the reading matches, dashed when it differs). It's optional -- without it, shared-kanji edges all render solid.
+
+```bash
+npm run fetch-jmdict-furigana                        # download to default shared location
+npm run fetch-jmdict-furigana -- --force             # re-download even if already present
+JMDICT_FURIGANA_PATH=/path/to/JmdictFurigana.json.zip npm run build-graph  # use a custom zip path
+```
+
+The pipeline checks `$JMDICT_FURIGANA_PATH`, then `data/dict/jmdict-furigana.json.zip`, then the default shared location -- same order as the Jitendex lookup above.
 
 The file is saved to the same shared location as Jitendex by default (`~/.local/share/japanese-dicts/` on Linux/macOS, `%LOCALAPPDATA%\japanese-dicts\` on Windows).
 

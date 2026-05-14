@@ -38,13 +38,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/japanese-dicts
-          key: dicts-v1
+          key: dicts-v2
 
       - name: Download dictionaries
         if: steps.cache-dicts.outputs.cache-hit != 'true'
         run: |
           npm run fetch-jitendex
           npm run fetch-freq-dict
+          npm run fetch-jmdict-furigana
 
       - run: npm run build-graph
 

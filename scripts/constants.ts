@@ -33,6 +33,20 @@ export const JITENDEX_SHARED_PATH = sharedDictPath("jitendex.zip");
 // Project-local fallback path, relative to project root.
 export const JITENDEX_LOCAL_SUBPATH = "data/dict/jitendex.zip";
 
+// ── JmdictFurigana ───────────────────────────────────────────────────────────
+
+// Precomputed per-character furigana segmentation for JMdict entries. Not a
+// competing dictionary -- it annotates the same JMdict data jitendex parses, so
+// (word, reading) keys align. Used to split shared-kanji edges by whether the
+// bridging kanji is read the same way in both words (T-01b).
+export const JMDICT_FURIGANA_URL =
+  "https://github.com/Doublevil/JmdictFurigana/releases/latest/download/JmdictFurigana.json.zip";
+
+export const JMDICT_FURIGANA_SHARED_PATH = sharedDictPath("jmdict-furigana.json.zip");
+
+// Project-local fallback path, relative to project root.
+export const JMDICT_FURIGANA_LOCAL_SUBPATH = "data/dict/jmdict-furigana.json.zip";
+
 // ── JPDB frequency dictionary ────────────────────────────────────────────────
 
 export const JPDB_FREQ_URL =

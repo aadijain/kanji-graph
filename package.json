@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "build-graph": "tsx scripts/build-graph.ts",
     "fetch-jitendex": "tsx scripts/fetch-jitendex.ts",
-    "fetch-freq-dict": "tsx scripts/fetch-freq-dict.ts"
+    "fetch-freq-dict": "tsx scripts/fetch-freq-dict.ts",
+    "fetch-jmdict-furigana": "tsx scripts/fetch-jmdict-furigana.ts"
   },
   "dependencies": {
     "@types/adm-zip": "^0.5.8",
