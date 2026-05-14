@@ -6,7 +6,6 @@ import { type Settings } from "../lib/settings";
 import {
   NODE_COLORS,
   EDGE_TYPE_META,
-  EDGE_STYLE,
   ACCENT_COLORS,
   hexToRgba,
   COOLDOWN_TICKS,
@@ -19,7 +18,7 @@ import {
 } from "../lib/constants";
 import { NODE_SIZE_VALUES } from "../lib/settings";
 import { freqDotR, drawLabel, saveLayout } from "../lib/graphLayout";
-import { drawStyledEdge, controlPointOf } from "../lib/edgeStyles";
+import { drawStyledEdge, getEdgeStyle, controlPointOf } from "../lib/edgeStyles";
 
 // Word-view hover/filter/highlight behavior. The four hover states are
 // mutually exclusive: setHoveredKanji and setHoveredReading clear each other,
@@ -299,7 +298,7 @@ export default function GraphCanvas({
         if (src.x == null || src.y == null || tgt.x == null || tgt.y == null) return;
         drawStyledEdge(
           ctx,
-          EDGE_STYLE[l.type],
+          getEdgeStyle(l),
           color,
           width,
           globalScale,

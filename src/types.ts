@@ -42,6 +42,9 @@ export interface Edge {
   target: string | WordNode;
   type: EdgeType;
   via: string[];
+  // shared-kanji only: false when the bridging kanji is read differently
+  // in the two words -- drives a dashed line style. true/undefined => solid.
+  readingMatch?: boolean;
 }
 
 export interface GraphData {

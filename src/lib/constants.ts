@@ -74,7 +74,7 @@ export type AccentName = keyof typeof ACCENT_COLORS;
 // Canvas active/muted/ambient variants are computed from the user's chosen color via hexToRgba.
 // This is the single source of truth for all edge-type lists -- derive from it, don't duplicate.
 export const EDGE_TYPE_META: Record<EdgeType, { label: string; color: AccentName; desc: string }> = {
-  "shared-kanji":      { label: "shared kanji",      color: "gold", desc: "words share one or more kanji characters" },
+  "shared-kanji":      { label: "shared kanji",      color: "gold", desc: "words share one or more kanji characters; dashed when the shared kanji is read differently in the two words" },
   "similar-kanji":     { label: "similar kanji",     color: "rose", desc: "words contain visually similar or commonly confused kanji" },
   "same-reading":      { label: "same reading",      color: "sky",  desc: "words share a kana reading" },
   "alternate-spelling": { label: "alternate spelling", color: "plum", desc: "same word written with different kanji or kana" },

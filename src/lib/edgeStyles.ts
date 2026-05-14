@@ -10,9 +10,18 @@
 // EDGE_STYLE_PARAMS values are in screen pixels; like the library's own linkWidth
 // they are divided by globalScale here so the rendered look is zoom-stable.
 
-import { EDGE_STYLE_PARAMS, type EdgeStyle } from "./constants";
+import { EDGE_STYLE, EDGE_STYLE_PARAMS, type EdgeStyle } from "./constants";
+import type { Edge } from "../types";
 
 interface Pt { x: number; y: number }
+
+// Resolves the line style for an edge. shared-kanji edges whose bridging kanji
+// is read differently in the two words draw dashed; every other edge
+// uses the per-type style from EDGE_STYLE.
+export function getEdgeStyle(edge: Edge): EdgeStyle {
+  if (edge.type === "shared-kanji" && edge.readingMatch === false) return "dashed";
+  return EDGE_STYLE[edge.type];
+}
 
 // react-force-graph stashes the quadratic-bezier control point on each link (or
 // null for a straight edge), computed for all visible links before

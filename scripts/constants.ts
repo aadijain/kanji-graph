@@ -38,7 +38,7 @@ export const JITENDEX_LOCAL_SUBPATH = "data/dict/jitendex.zip";
 // Precomputed per-character furigana segmentation for JMdict entries. Not a
 // competing dictionary -- it annotates the same JMdict data jitendex parses, so
 // (word, reading) keys align. Used to split shared-kanji edges by whether the
-// bridging kanji is read the same way in both words (T-01b).
+// bridging kanji is read the same way in both words.
 export const JMDICT_FURIGANA_URL =
   "https://github.com/Doublevil/JmdictFurigana/releases/latest/download/JmdictFurigana.json.zip";
 

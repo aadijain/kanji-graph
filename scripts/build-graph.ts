@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { seedSource } from "./dict/seed.ts";
 import { jitendexSource } from "./dict/jitendex.ts";
 import { loadFrequencyMap } from "./dict/freq.ts";
+import { loadFuriganaIndex, type FuriganaIndex } from "./dict/furigana.ts";
 import type { DictionarySource, WordEntry } from "./dict/source.ts";
 import { KANJI_RE, WORDS_FILE, SIMILAR_KANJI_FILE, GRAPH_OUTPUT, BRIDGE_KANJI_MAX_WORDS } from "./constants.ts";
 import { deinflect } from "../src/lib/deinflect.ts";
@@ -33,7 +34,7 @@ const kanjiOf = (word: string) => [...word].filter(isKanji);
 // Build-time narrower variants: source/target are always string IDs (force-graph
 // mutates them to node objects at runtime); WordNode has no force-graph position fields.
 type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
-type Edge = { source: string; target: string; type: EdgeType; via: string[] };
+type Edge = { source: string; target: string; type: EdgeType; via: string[]; readingMatch?: boolean };
 
 function readWordList(path: string): string[] {
   return readFileSync(path, "utf8")
@@ -97,7 +98,59 @@ function buildKanjiIndex(nodes: WordNode[]): {
   return { byKanji, highFreqKanjiSet };
 }
 
-function buildSharedKanjiEdges(byKanji: Map<string, string[]>): Edge[] {
+// Per-kanji readings resolved from JmdictFurigana, keyed by word id then kanji
+// char. Looked up by (word, primary reading). Multi-character ruby chunks
+// (jukujikun like 大人=おとな) can't be attributed to a single kanji and are
+// skipped; a kanji repeated within one word is last-wins (a rare lossy case).
+function buildKanjiReadings(
+  nodes: WordNode[],
+  furigana: FuriganaIndex,
+): Map<string, Map<string, string>> {
+  const result = new Map<string, Map<string, string>>();
+  for (const node of nodes) {
+    const segs = furigana.lookup(node.word, node.reading);
+    if (!segs) continue;
+    const perKanji = new Map<string, string>();
+    for (const seg of segs) {
+      if (seg.ruby.length === 1 && isKanji(seg.ruby)) perKanji.set(seg.ruby, seg.rt);
+    }
+    if (perKanji.size > 0) result.set(node.id, perKanji);
+  }
+  return result;
+}
+
+// shared-kanji subtype: does the bridging kanji read the same in both
+// words? Plain string compare of JmdictFurigana's *contextual* readings, so
+// gemination (学=がく vs がっ) and rendaku count as different -- the
+// pronunciation genuinely differs, and the field only drives line style.
+// Multi-kanji bridges: any mismatch among comparable kanji => false (the more
+// notable relationship). undefined when no shared kanji is resolvable in both.
+function classifyReadingMatch(
+  a: string,
+  b: string,
+  via: Set<string>,
+  kanjiReadings: Map<string, Map<string, string>>,
+): boolean | undefined {
+  const ra = kanjiReadings.get(a);
+  const rb = kanjiReadings.get(b);
+  if (!ra || !rb) return undefined;
+  let comparable = 0;
+  let mismatch = 0;
+  for (const k of via) {
+    const ka = ra.get(k);
+    const kb = rb.get(k);
+    if (ka == null || kb == null) continue;
+    comparable++;
+    if (ka !== kb) mismatch++;
+  }
+  if (comparable === 0) return undefined;
+  return mismatch === 0;
+}
+
+function buildSharedKanjiEdges(
+  byKanji: Map<string, string[]>,
+  kanjiReadings: Map<string, Map<string, string>>,
+): Edge[] {
   const filteredKanji: string[] = [];
   const pairs = new Map<string, { source: string; target: string; via: Set<string> }>();
   for (const [kanji, ids] of byKanji) {
@@ -124,6 +177,7 @@ function buildSharedKanjiEdges(byKanji: Map<string, string[]>): Edge[] {
     target: p.target,
     type: "shared-kanji" as const,
     via: [...p.via],
+    readingMatch: classifyReadingMatch(p.source, p.target, p.via, kanjiReadings),
   }));
 }
 
@@ -345,12 +399,24 @@ async function main() {
     console.log(`[build-graph] frequency overlaid for ${overlaid}/${nodes.length} nodes`);
   }
 
+  const furigana = await loadFuriganaIndex();
+
   const { byKanji, highFreqKanjiSet } = buildKanjiIndex(nodes);
+  const kanjiReadings = buildKanjiReadings(nodes, furigana);
   const similar = loadSimilarKanji(resolve(ROOT, SIMILAR_KANJI_FILE));
   const altEdges = buildAlternateSpellingEdges(nodes);
   const altPairSet = new Set(altEdges.map((e) => `${e.source} ${e.target}`));
-  const sharedEdges = buildSharedKanjiEdges(byKanji).filter((e) => !altPairSet.has(`${e.source} ${e.target}`));
+  const sharedEdges = buildSharedKanjiEdges(byKanji, kanjiReadings).filter((e) => !altPairSet.has(`${e.source} ${e.target}`));
   const sharedPairSet = new Set(sharedEdges.map((e) => `${e.source} ${e.target}`));
+  {
+    let same = 0, diff = 0, unknown = 0;
+    for (const e of sharedEdges) {
+      if (e.readingMatch === true) same++;
+      else if (e.readingMatch === false) diff++;
+      else unknown++;
+    }
+    console.log(`[build-graph] shared-kanji reading split: same=${same}, different=${diff}, unknown=${unknown}`);
+  }
   const edges: Edge[] = [
     ...altEdges,
     ...sharedEdges,
