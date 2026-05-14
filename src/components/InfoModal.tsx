@@ -16,11 +16,12 @@ const GLOBAL_VIEW = [
 
 // Word view: click-driven, one word at a time.
 const FOCUS_MODE = [
-  ["Click a neighbor or edge", "Navigate to that word"],
+  ["Click a neighbor", "Navigate to that word"],
   ["Hover a kanji", "Filter connections by that kanji"],
   ["Hover the reading", "Filter to same-reading connections"],
   ["Hover a neighbor", "Highlight the bridging kanji or reading in the main word"],
-  ["<> in details", "Cycle through a word's dictionary entries"],
+  ["Details panel: ∧", "Cycle collapsed / summary / full"],
+  ["Details panel: <,>", "Cycle through a word's dictionary entries"],
   ["Left edge / Esc", "Return to graph view"],
 ] as const;
 

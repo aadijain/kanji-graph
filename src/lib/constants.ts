@@ -143,6 +143,7 @@ export function hexToRgba(hex: string, alpha: number): string {
 // ── Storage keys ─────────────────────────────────────────────────────────────
 
 export const SETTINGS_SECTIONS_KEY = "kanji-graph:settings-sections";
+export const DETAILS_PANEL_STATE_KEY = "kanji-graph:details-panel-state";
 
 // ── Graph renderer ───────────────────────────────────────────────────────────
 

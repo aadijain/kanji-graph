@@ -3,6 +3,7 @@ import { useStore } from "../store";
 import { endpointId, type Edge, type HighFreqConnection } from "../types";
 import { playPronunciation, stopAudio } from "../lib/audio";
 import { getNodeEntries } from "../lib/utils";
+import { DETAILS_PANEL_STATE_KEY } from "../lib/constants";
 
 function SpeakerIcon({ className }: { className?: string }) {
   return (
@@ -22,6 +23,47 @@ function SpeakerIcon({ className }: { className?: string }) {
   );
 }
 
+// Three-state collapse. Cycle order opens the hidden tab straight to the full
+// panel, then steps down: collapsed -> expanded -> first-section -> collapsed.
+type DetailsView = "collapsed" | "first-section" | "expanded";
+const VIEW_CYCLE: DetailsView[] = ["collapsed", "expanded", "first-section"];
+
+function getDetailsView(): DetailsView {
+  try {
+    const stored = localStorage.getItem(DETAILS_PANEL_STATE_KEY);
+    if (stored && (VIEW_CYCLE as string[]).includes(stored)) return stored as DetailsView;
+  } catch {
+    // fall through to default
+  }
+  return "expanded";
+}
+
+function setDetailsView(v: DetailsView) {
+  try {
+    localStorage.setItem(DETAILS_PANEL_STATE_KEY, v);
+  } catch {
+    // ignore
+  }
+}
+
+// Chevron used by the cycle control; viewBox/path mirror SettingsPrimitives.
+function CycleChevron({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 2l4 4-4 4" />
+    </svg>
+  );
+}
+
 export default function DetailsPanel() {
   const hovered = useStore((s) => s.hovered);
   const focused = useStore((s) => s.focused);
@@ -36,6 +78,15 @@ export default function DetailsPanel() {
   const [playing, setPlaying] = useState(false);
   useEffect(() => () => stopAudio(), []);
   const [neighborEntryIdx, setNeighborEntryIdx] = useState(0);
+  const [view, setView] = useState<DetailsView>(getDetailsView);
+
+  const cycleView = () => {
+    setView((v) => {
+      const next = VIEW_CYCLE[(VIEW_CYCLE.indexOf(v) + 1) % VIEW_CYCLE.length];
+      setDetailsView(next);
+      return next;
+    });
+  };
 
   const activeNode = hovered ?? focused;
   const isActiveNodeFocused = activeNode?.id === focused?.id;
@@ -107,6 +158,19 @@ export default function DetailsPanel() {
 
   if (!activeNode) return null;
 
+  if (view === "collapsed") {
+    return (
+      <button
+        type="button"
+        onClick={cycleView}
+        aria-label="Expand details panel"
+        className="absolute right-6 top-6 rounded-lg border border-ink-700 bg-ink-900 p-1.5 text-muted shadow-xl transition-colors hover:text-accent-paper"
+      >
+        <CycleChevron className="h-3.5 w-3.5 rotate-180" />
+      </button>
+    );
+  }
+
   const entries = getNodeEntries(activeNode);
   // While hovering a reading on the focused word, surface that entry instead of
   // the selected one so the panel mirrors what the overlay is highlighting.
@@ -151,25 +215,35 @@ export default function DetailsPanel() {
         >
           <SpeakerIcon className={`h-4 w-4 ${playing ? "animate-pulse" : ""}`} />
         </button>
-        {entries.length > 1 && (
-          <div className="ml-auto flex items-center gap-1 text-xs text-muted">
-            <button
-              type="button"
-              aria-label="Previous entry"
-              disabled={clampedIdx === 0}
-              onClick={() => navEntry(-1)}
-              className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
-            >&lt;</button>
-            <span>{clampedIdx + 1}/{entries.length}</span>
-            <button
-              type="button"
-              aria-label="Next entry"
-              disabled={clampedIdx === entries.length - 1}
-              onClick={() => navEntry(1)}
-              className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
-            >&gt;</button>
-          </div>
-        )}
+        <div className="ml-auto flex items-center gap-1">
+          {entries.length > 1 && (
+            <div className="flex items-center gap-1 text-xs text-muted">
+              <button
+                type="button"
+                aria-label="Previous entry"
+                disabled={clampedIdx === 0}
+                onClick={() => navEntry(-1)}
+                className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
+              >&lt;</button>
+              <span>{clampedIdx + 1}/{entries.length}</span>
+              <button
+                type="button"
+                aria-label="Next entry"
+                disabled={clampedIdx === entries.length - 1}
+                onClick={() => navEntry(1)}
+                className="rounded px-1 py-0.5 hover:bg-ink-800 disabled:opacity-30"
+              >&gt;</button>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={cycleView}
+            aria-label="Collapse details panel"
+            className="rounded p-1 text-muted transition-colors hover:bg-ink-800 hover:text-accent-paper"
+          >
+            <CycleChevron className="h-3.5 w-3.5 -rotate-90" />
+          </button>
+        </div>
       </div>
       <div className="jp mt-1 text-sm text-secondary">{entry.reading}</div>
       <ul className="mt-3 space-y-0.5 text-sm leading-snug text-primary">
@@ -182,6 +256,7 @@ export default function DetailsPanel() {
         {activeNode.frequency != null && <span className="ml-auto">#{activeNode.frequency}</span>}
       </div>
 
+      {view === "expanded" && <>
       {connections && ([...connections.byKanji.values()].some((v) => v.length > 0) || connections.highFreq.some((c) => c.type === "shared-kanji")) && (
         <div className="mt-4 border-t border-ink-700 pt-3">
           <div className="text-xs uppercase tracking-wide text-muted">
@@ -301,6 +376,7 @@ export default function DetailsPanel() {
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }
