@@ -8,7 +8,7 @@ function getTemplate(): string {
 
 let currentAudio: HTMLAudioElement | null = null;
 
-function buildLookupUrl(word: string, reading: string, template: string): string {
+export function buildLookupUrl(word: string, reading: string, template: string): string {
   return template
     .replace("{term}", encodeURIComponent(word))
     .replace("{reading}", encodeURIComponent(reading));
