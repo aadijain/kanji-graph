@@ -10,7 +10,7 @@ import { KANJI_RE, WORDS_FILE, SIMILAR_KANJI_FILE, GRAPH_OUTPUT, BRIDGE_KANJI_MA
 import { deinflect } from "../src/lib/deinflect.ts";
 import type { EdgeType, HighFreqConnection, GraphData } from "../src/types.ts";
 
-function chain(...sources: DictionarySource[]): DictionarySource {
+export function chain(...sources: DictionarySource[]): DictionarySource {
   return {
     name: sources.map((s) => s.name).join("→"),
     async prepare() {
@@ -33,17 +33,17 @@ const kanjiOf = (word: string) => [...word].filter(isKanji);
 
 // Build-time narrower variants: source/target are always string IDs (force-graph
 // mutates them to node objects at runtime); WordNode has no force-graph position fields.
-type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
-type Edge = { source: string; target: string; type: EdgeType; via: string[]; readingMatch?: boolean };
+export type WordNode = WordEntry & { id: string; kanji: string[]; entries: WordEntry[] };
+export type Edge = { source: string; target: string; type: EdgeType; via: string[]; readingMatch?: boolean };
 
-function readWordList(path: string): string[] {
+export function readWordList(path: string): string[] {
   return readFileSync(path, "utf8")
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith("#"));
 }
 
-async function lookupAll(words: string[], source: DictionarySource): Promise<WordNode[]> {
+export async function lookupAll(words: string[], source: DictionarySource): Promise<WordNode[]> {
   await source.prepare?.();
   const nodes: WordNode[] = [];
   const seen = new Set<string>(); // dedupe by resolved dictionary form
@@ -78,7 +78,7 @@ async function lookupAll(words: string[], source: DictionarySource): Promise<Wor
   return nodes;
 }
 
-function buildKanjiIndex(nodes: WordNode[]): {
+export function buildKanjiIndex(nodes: WordNode[]): {
   byKanji: Map<string, string[]>;
   highFreqKanjiSet: Set<string>;
 } {
@@ -102,7 +102,7 @@ function buildKanjiIndex(nodes: WordNode[]): {
 // char. Looked up by (word, primary reading). Multi-character ruby chunks
 // (jukujikun like 大人=おとな) can't be attributed to a single kanji and are
 // skipped; a kanji repeated within one word is last-wins (a rare lossy case).
-function buildKanjiReadings(
+export function buildKanjiReadings(
   nodes: WordNode[],
   furigana: FuriganaIndex,
 ): Map<string, Map<string, string>> {
@@ -125,7 +125,7 @@ function buildKanjiReadings(
 // pronunciation genuinely differs, and the field only drives line style.
 // Multi-kanji bridges: any mismatch among comparable kanji => false (the more
 // notable relationship). undefined when no shared kanji is resolvable in both.
-function classifyReadingMatch(
+export function classifyReadingMatch(
   a: string,
   b: string,
   via: Set<string>,
@@ -147,7 +147,7 @@ function classifyReadingMatch(
   return mismatch === 0;
 }
 
-function buildSharedKanjiEdges(
+export function buildSharedKanjiEdges(
   byKanji: Map<string, string[]>,
   kanjiReadings: Map<string, Map<string, string>>,
 ): Edge[] {
@@ -181,7 +181,7 @@ function buildSharedKanjiEdges(
   }));
 }
 
-function buildSameReadingEdges(nodes: WordNode[]): Edge[] {
+export function buildSameReadingEdges(nodes: WordNode[]): Edge[] {
   const byReading = new Map<string, string[]>();
   for (const n of nodes) {
     const readings = new Set(n.entries.map((e) => e.reading?.trim()).filter(Boolean) as string[]);
@@ -204,7 +204,7 @@ function buildSameReadingEdges(nodes: WordNode[]): Edge[] {
   return edges;
 }
 
-function loadSimilarKanji(path: string): Map<string, Set<string>> {
+export function loadSimilarKanji(path: string): Map<string, Set<string>> {
   const map = new Map<string, Set<string>>();
   let raw: string;
   try {
@@ -235,7 +235,7 @@ function loadSimilarKanji(path: string): Map<string, Set<string>> {
 }
 
 // High-freq pairs are skipped entirely; they appear in highFreqConnections instead.
-function buildSimilarKanjiEdges(
+export function buildSimilarKanjiEdges(
   nodes: WordNode[],
   similar: Map<string, Set<string>>,
   highFreqKanjiSet: Set<string>,
@@ -292,7 +292,7 @@ function buildSimilarKanjiEdges(
   }));
 }
 
-function buildAlternateSpellingEdges(nodes: WordNode[]): Edge[] {
+export function buildAlternateSpellingEdges(nodes: WordNode[]): Edge[] {
   const groups = new Map<string, WordNode[]>();
   for (const node of nodes) {
     const primary = node.entries[0];
@@ -326,7 +326,7 @@ function buildAlternateSpellingEdges(nodes: WordNode[]): Edge[] {
 // sharedPairSet: the set of word-pair keys (sorted "a b") that already have a
 // visible shared-kanji edge. Used to avoid double-counting pairs that share
 // both a regular kanji and a high-freq kanji.
-function buildHighFreqConnections(
+export function buildHighFreqConnections(
   byKanji: Map<string, string[]>,
   highFreqKanjiSet: Set<string>,
   similar: Map<string, Set<string>>,
@@ -467,7 +467,10 @@ async function main() {
   );
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Only auto-run when invoked as a script, not when imported by tests.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
