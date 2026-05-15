@@ -68,11 +68,11 @@ function extractGlosses(node: StructuredNode | undefined, out: string[]): void {
   }
 }
 
-function cleanText(s: string): string {
+export function cleanText(s: string): string {
   return s.replace(/​/g, "").replace(/\s+/g, " ").trim();
 }
 
-function jlptFromTags(tags: string): number | undefined {
+export function jlptFromTags(tags: string): number | undefined {
   // Jitendex / Yomitan tag formats vary: "jlptN5", "jlpt-n5", "jlpt5".
   const m = tags.match(/jlpt[\s-]?n?([1-5])\b/i);
   return m ? Number(m[1]) : undefined;
